@@ -62,6 +62,15 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   `preconditions` check that names the fix (`run: task up`) instead of failing
   with a podman-compose stack trace; `testacc` additionally requires the lab.
 
+- The provider is served through `tf6muxserver` with the SDKv2 half lifted to
+  protocol 6.0 by `tf5to6server`, so resources can move to
+  `terraform-plugin-framework` one at a time while the provider stays
+  shippable (ADR 0003). `internal/provider` holds the framework half.
+- `TestMuxServer_ProviderSchemasMatch` — the mux rejects halves whose provider
+  schemas differ, descriptions included, and that failure otherwise appears at
+  the plugin handshake inside a consumer's `terraform plan`. Verified by
+  drifting a description on purpose and confirming the test fails.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
@@ -69,6 +78,8 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   and resolved to nothing. Invisible to consumers — the provider is used as a
   binary, not imported.
 - Go directive raised to 1.26.5.
+- `terraform-registry-manifest.json` declares protocol **6.0** instead of
+  5.0. Both halves of the mux speak 6.0.
 
 ### Removed
 

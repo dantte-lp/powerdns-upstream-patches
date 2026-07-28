@@ -5,7 +5,7 @@ its execution record. Task status is updated **in the same commit as the work**,
 never retrospectively in a batch — a plan updated after the fact is a report,
 not a control.
 
-**Status:** phase 3 (migration) open · sprint 1 closed, sprint 2 next
+**Status:** phase 3 (migration) open · sprint 2 in progress — mux server proven, first resource port next
 **Last updated:** 2026-07-28
 
 ## Legend
@@ -152,25 +152,39 @@ in `.golangci.yml` with that reasoning written at the exclusion. New code under
 resource ports, and S4-10 deletes it. Its removal is the gate that proves the
 migration is complete.
 
-### Sprint 2 — Mux server and the first resource · `[ ]`
+### Sprint 2 — Mux server and the first resource · `[~]` in progress
 
 Goal: prove the migration mechanism end to end on one resource before
 committing to it for ten.
 
 | ID | Task | Role | Depends | Status |
 |---|---|---|---|---|
-| S2-01 | `main.go`: `tf5to6server.UpgradeServer` + `tf6muxserver` | DEV | S1-05 `[x]` | `[ ]` |
-| S2-02 | Manifest declares protocol 6.0 (S-02) | DEV | S2-01 | `[ ]` |
-| S2-03 | Layout: `internal/provider`, `internal/client/pdns` (S-04) | ARC + DEV | S2-01 | `[ ]` |
+| S2-01 | `main.go`: `tf5to6server.UpgradeServer` + `tf6muxserver` | DEV | S1-05 `[x]` | `[x]` |
+| S2-02 | Manifest declares protocol 6.0 (S-02) | DEV | S2-01 | `[x]` |
+| S2-03 | Layout: `internal/provider` established; `internal/client/pdns` follows with the first port | ARC + DEV | S2-01 | `[~]` |
 | S2-04 | Port `powerdns_zone` to the framework | DEV | S2-03 | `[ ]` |
 | S2-05 | Fix D-01 and D-02 in the ported resource — `net.SplitHostPort`, validator on both paths | DEV | S2-04 | `[ ]` |
 | S2-06 | State-continuity acceptance test: apply on SDKv2, refresh on framework | QA | S2-04 | `[ ]` |
 | S2-07 | Acceptance on both backends | QA | S2-06 | `[ ]` |
 | S2-08 | Registry docs regenerated | DEV | S2-04 | `[ ]` |
+| S2-09 | **Added mid-sprint.** Schema-parity test between the two mux halves | QA | S2-01 | `[x]` |
 
 `powerdns_zone` first because it is the resource every other one depends on and
 the one carrying two open defects. If the mechanism is wrong, it is cheapest to
 learn here.
+
+**S2-09** was not planned and is the most useful thing in the sprint so far.
+`terraform-plugin-mux` refuses to serve halves whose **provider** schemas
+differ — and the comparison includes attribute descriptions, not just names and
+types. Nothing in the build catches a drifting description; it surfaces at the
+plugin handshake, as a Terraform error inside a consumer's `terraform plan`.
+
+`TestMuxServer_ProviderSchemasMatch` fetches `GetProviderSchema` through the
+mux and fails on any reported error. Constructing the server is not enough on
+its own — `NewMuxServer` defers the comparison until the schemas are fetched.
+The test was verified by deliberately drifting one description and confirming
+it fails, then restoring it. A companion test names any type served by both
+halves, which is the one-way rule from ADR 0003 made mechanical.
 
 ### Sprint 3 — Records and metadata · `[ ]`
 
