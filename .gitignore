@@ -35,3 +35,11 @@ website/vendor
 # Test exclusions
 !command/test-fixtures/**/*.tfstate
 !command/test-fixtures/**/.terraform/
+.serena/
+bin/
+dist/
+.worktrees/
+coverage.out
+coverage.html
+__pycache__/
+*.pyc

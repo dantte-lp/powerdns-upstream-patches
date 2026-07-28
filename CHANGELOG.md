@@ -1,185 +1,45 @@
-# 2.3.0 (June 4, 2026)
+# Changelog
 
-FEATURES:
-  * **Add PowerDNS 5.0 catalog, views, and networks support** ([#66](https://github.com/mmianl/terraform-provider-powerdns/pull/66), @mglants)
+All notable changes to this project are documented here.
 
-FIXES:
-  * **Preserve the disabled state of existing `powerdns_record` RRsets when `disabled` is omitted from configuration** ([#68](https://github.com/mmianl/terraform-provider-powerdns/pull/68), @mmianl)
+The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
+and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-# 2.2.0 (May 6, 2026)
+This is a fork of [`mmianl/terraform-provider-powerdns`](https://github.com/mmianl/terraform-provider-powerdns),
+taken at commit `0dac0e7` (release `v2.3.0`). Upstream history is not reproduced
+here; versioning restarts at `0.1.0` because the plugin protocol and the module
+path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship.md).
 
-FEATURES:
-  * **Add RRset `comments` support to `powerdns_record`** ([#63](https://github.com/mmianl/terraform-provider-powerdns/pull/63), @mmianl)
-  * **New `powerdns_record` datasource for reading record sets** ([#63](https://github.com/mmianl/terraform-provider-powerdns/pull/63), @mmianl)
-  * **Add `disabled` management for `powerdns_record` and `powerdns_record_soa`, and `disabled` export from `powerdns_record` data sources** ([#63](https://github.com/mmianl/terraform-provider-powerdns/pull/63), @mmianl)
+## [Unreleased]
 
-# 2.1.0 (April 19, 2026)
+### Added
 
-FEATURES:
-  * **Add support for zone metadata** ([#61](https://github.com/mmianl/terraform-provider-powerdns/pull/61), @mmianl)
+- Standards set under `docs/standards/`: naming conventions, versioning,
+  commits, changelog, Go 1.26 style, Terraform provider best practices,
+  Terragrunt integration, and PowerDNS API discipline.
+- `AGENTS.md` as the canonical contributor guide, with `CODEX.md` and
+  `CLAUDE.md` as pointers.
+- Development methodology (`docs/methodology.md`) and six architectural
+  decision records under `docs/adr/`.
+- Fork baseline audit (`docs/audit/AUDIT-01-fork-baseline.md`) recording the
+  inherited defects, structural findings and test blind spot.
+- Containerised development on `golang:1.26-trixie` with the toolchain pinned
+  by build argument; Compose Specification files for the dev container and the
+  acceptance lab.
+- Acceptance lab with **two** authoritative backends (PostgreSQL and LMDB) plus
+  a recursor with `api_dir` set, driven through podman-py
+  (`scripts/automation/lab.py`). Views and networks are unimplemented by the
+  PostgreSQL backend, so a single-backend fixture cannot cover this provider.
+- `golangci-lint` v2 configuration with an explicit allowlist of 82 linters, 3 formatters, and
+  severity tiers.
+- CI workflow with an acceptance matrix across both backends, all GitHub
+  Actions pinned by commit SHA.
 
-# 2.0.2 (March 26, 2026)
+## [0.1.0] — 2026-07-28
 
-FIXES:
-  * **Fix provider initialization when no resources are planned by removing ServerVersion from BaseClient** ([#58](https://github.com/mmianl/terraform-provider-powerdns/pull/58), @mmianl)
+### Added
 
-FEATURES:
-  * **Dependency updates** ([#57](https://github.com/mmianl/terraform-provider-powerdns/pull/57), @dependabot)
-  * **Dependency updates** ([#55](https://github.com/mmianl/terraform-provider-powerdns/pull/55), @dependabot)
-  * **Dependency updates** ([#54](https://github.com/mmianl/terraform-provider-powerdns/pull/54), @dependabot)
-  * **Dependency updates** ([#53](https://github.com/mmianl/terraform-provider-powerdns/pull/53), @dependabot)
-  * **Dependency updates** ([#52](https://github.com/mmianl/terraform-provider-powerdns/pull/52), @dependabot)
+- Initial fork.
 
-# 2.0.1 (February 16, 2026)
-
-FEATURES:
-  * **Dependency updates** ([#51](https://github.com/mmianl/terraform-provider-powerdns/pull/50), @mmianl)
-
-## 2.0.0 (February 12, 2026)
-
-BREAKING:
-  * **Remove `nameservers` argument from `powerdns_zone` resource** ([#45](https://github.com/mmianl/terraform-provider-powerdns/pull/45), @mmianl)
-  * **Add FQDN validation for all DNS zone and record name fields** ([#46](https://github.com/mmianl/terraform-provider-powerdns/pull/46), @MrKeiKun, @mmianl)
-  * **New resource**: `powerdns_record_soa` for managing SOA records with individual fields instead of `SOA` type in `powerdns_record` ([#44](https://github.com/mmianl/terraform-provider-powerdns/pull/44), @mmianl)
-
-FEATURES:
-  * **Allow in-place updates of `powerdns_record` resources** ([#45](https://github.com/mmianl/terraform-provider-powerdns/pull/45), @mmianl)
-
-FIXES:
-  * **Fix ordering issues in `powerdns_recursor_config` resource** ([#47](https://github.com/mmianl/terraform-provider-powerdns/pull/47), @mmianl)
-
- ## 1.8.2 (November 25, 2025)
-
-FEATURES:
-  * **Improve logging** ([#33](https://github.com/mmianl/terraform-provider-powerdns/pull/33), @mmianl)
-  * **Dependency updates** ([#39](https://github.com/mmianl/terraform-provider-powerdns/pull/39), @dependabot)
-  * **Dependency updates** ([#40](https://github.com/mmianl/terraform-provider-powerdns/pull/40), @dependabot)
-
-## 1.8.1 (September 29, 2025)
-
-FEATURES:
-  * **Dependency updates** ([#29](https://github.com/mmianl/terraform-provider-powerdns/pull/29), @dependabot)
-
-## 1.8.0 (September 28, 2025)
-
-FEATURES:
-  * **Dependency updates** ([#16](https://github.com/mmianl/terraform-provider-powerdns/pull/16), @dependabot)
-  * **Dependency updates** ([#17](https://github.com/mmianl/terraform-provider-powerdns/pull/17), @dependabot)
-  * **Add basic support for PowerDNS recursor api** ([#18](https://github.com/mmianl/terraform-provider-powerdns/issues/18), @MrKeiKun)
-  * **Introduce reverse_zone data source** ([#19](https://github.com/mmianl/terraform-provider-powerdns/issues/19), @MrKeiKun)
-
-## 1.7.2 (August 25, 2025)
-
-FEATURES:
-  * **Dependency updates** ([#15](https://github.com/mmianl/terraform-provider-powerdns/pull/15), @dependabot)
-
-## 1.7.1 (July 07, 2025)
-
-FEATURES:
-  * **Read response body before returning if client instantiation fails** ([#11](https://github.com/mmianl/terraform-provider-powerdns/issues/11), @mmianl)
-
-## 1.7.0 (June 16, 2025)
-
-FEATURES:
-  * **Introduce reverse_zone and ptr_record resources** ([#9](https://github.com/mmianl/terraform-provider-powerdns/issues/9), @mmianl)
-
-## 1.6.2 (May 29, 2025)
-
-FEATURES:
-  * **Fix resources with upper case names not being destroyed** ([#7](https://github.com/mmianl/terraform-provider-powerdns/issues/7), @mmianl)
-
-## 1.6.1 (May 28, 2025)
-
-FEATURES:
-  * **Fix provider config error when using client certificates that don't exist** ([#5](https://github.com/mmianl/terraform-provider-powerdns/issues/5), @mmianl)
-
-## 1.6.0 (May 23, 2025)
-
-FEATURES:
-  * **Add support for client certificate authentication** ([#1](https://github.com/mmianl/terraform-provider-powerdns/pull/1), @mmianl)
-
-## 1.5.0 (Unreleased)
-
-FEATURES:
-  * **Added option to cache PowerDNS API response** ([#81](https://github.com/pan-net/terraform-provider-powerdns/pull/81), @menai34)
-
-## 1.4.1 (January 21, 2021)
-
-FEATURES:
-  * **Added PowerDNS Zone Account support**  ([#71](https://github.com/pan-net/terraform-provider-powerdns/issues/71), @jbe-dw)
-
-FIXES:
-  * **Added support for port along with IP in the masters attribute** ([#64](https://github.com/pan-net/terraform-provider-powerdns/issues/64), @mbag)
-
-ENHANCEMENTS:
-
-  * **Add note in documentation about usage of SQLite3** ([#75](https://github.com/pan-net/terraform-provider-powerdns/issues/75), @dkowis)
-  * **Improve _Using_ section in README** ([#67](https://github.com/pan-net/terraform-provider-powerdns/pull/67), @Nowaker)
-
-## 1.4.0 (April 27, 2020)
-
-FEATURES:
-  * **Added ServerVersion attribute to client** ([#52](https://github.com/pan-net/terraform-provider-powerdns/issues/52))
-  * **Added masters zone attribute for Slave zone kind** ([#59](https://github.com/pan-net/terraform-provider-powerdns/issues/59))
-
-FIXES:
-  * **Updated client tests to test sanitizeURL directly** ([#51](https://github.com/pan-net/terraform-provider-powerdns/issues/51))
-  * **Fixed case sensitivity of kind zone attribute** ([#58](https://github.com/pan-net/terraform-provider-powerdns/issues/58))
-
-ENHANCEMENTS:
-  * **Updated documentation with examples based on user feedback** ([#57](https://github.com/pan-net/terraform-provider-powerdns/issues/57))
-
-## 1.3.0 (December 20, 2019)
-
-FEATURES:
-  * **Move to using ParallelTest** - making tests faster ([#38](https://github.com/pan-net/terraform-provider-powerdns/issues/38))
-  * **Added soa_edit_api option** ([#40](https://github.com/pan-net/terraform-provider-powerdns/issues/40))
-
-FIXES:
-  * **Fixed formatting in docs regarding import function** ([#31](https://github.com/pan-net/terraform-provider-powerdns/issues/31))
-
-ENHANCEMENTS:
-  * **Added tests for ALIAS type** ([#42](https://github.com/pan-net/terraform-provider-powerdns/issues/42))
-  * **Migrated to terraform plugin SDK** ([#47](https://github.com/pan-net/terraform-provider-powerdns/issues/47))
-  * **Updated vedor dependencies** ([#48](https://github.com/pan-net/terraform-provider-powerdns/issues/48))
-
-## 1.2.0 (October 11, 2019)
-
-FEATURES:
-  * **Added support for terraform resource import** ([#31](https://github.com/pan-net/terraform-provider-powerdns/issues/31))
-
-FIXES:
-  * **Validate value of records** - record with empty records deleted the record from the PowerDNS remote but not from state file ([#33](https://github.com/pan-net/terraform-provider-powerdns/issues/33))
-
-## 1.1.0 (August 13, 2019)
-
-FEATURES:
-  * **HTTPS Custom CA**: added option for custom Root CA for HTTPS Certificate validation (option `ca_certificate`) ([#22](https://github.com/pan-net/terraform-provider-powerdns/issues/22))
-  * **HTTPS**: added option to skip HTTPS certificate validation - insecure HTTPS (option `insecure_https`) ([#22](https://github.com/pan-net/terraform-provider-powerdns/issues/22))
-
-ENHANCEMENTS:
-  * The provider doesn't attempt to connect to the PowerDNS endpoint if there is nothing to be done ([#24](https://github.com/pan-net/terraform-provider-powerdns/issues/24))
-  * `server_url` (`PDNS_SERVER_URL`) can now be declared with/without scheme, port, trailing slashes or path ([#28](https://github.com/pan-net/terraform-provider-powerdns/issues/28))
-
-## 1.0.0 (August 06, 2019)
-
-NOTES:
- * provider: This release includes only a Terraform SDK upgrade with compatibility for Terraform v0.12. The provider remains backwards compatible with Terraform v0.11 and this update should have no significant changes in behavior for the provider. Please report any unexpected behavior in new GitHub issues (Terraform core: https://github.com/hashicorp/terraform/issues or Terraform PowerDNS Provider: https://github.com/pan-net/terraform-provider-powerdns/issues) ([#16](https://github.com/pan-net/terraform-provider-powerdns/issues/16))
-
-ENHANCEMENTS:
-  * Switch to go modules and Terraform v0.12 SDK ([#16](https://github.com/pan-net/terraform-provider-powerdns/issues/16))
-
-## 0.2.0 (July 31, 2019)
-
-FEATURES:
-  * **New resource**: `powerdns_zone` ([#8](https://github.com/pan-net/terraform-provider-powerdns/issues/8))
-
-ENHANCEMENTS:
-  * resource/powerdns_record: Add support for set-ptr option ([#4](https://github.com/pan-net/terraform-provider-powerdns/issues/4))
-  * build: Added docker-compose tests ([#9](https://github.com/pan-net/terraform-provider-powerdns/issues/9))
-
-## 0.1.0 (June 21, 2017)
-
-NOTES:
-
-* Same functionality as that of Terraform 0.9.8. Repacked as part of [Provider Splitout](https://www.hashicorp.com/blog/upcoming-provider-changes-in-terraform-0-10/)
+[Unreleased]: https://github.com/dantte-lp/terraform-provider-powerdns/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/dantte-lp/terraform-provider-powerdns/releases/tag/v0.1.0
