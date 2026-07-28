@@ -112,6 +112,10 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
 - `docs/plan.md` phase 6 closed: R-02…R-06 and R-08 delivered, R-01 dropped
   (this repository is no longer a provider), R-07 outstanding.
 
+- `PowerDNS/pdns#17807` filed: the Authoritative OpenAPI specification diverges
+  from the implementation in both directions. Verified on `master` `a74d89a8`,
+  not only on the 5.1.3 tag. Closes `R-07` and with it phase 6.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The

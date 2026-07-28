@@ -74,14 +74,35 @@ path used — so `TestAccPDNSZoneSlaveWithInvalidMasters` and
 message would have been easy and would have turned a focused fix into a
 diff across their test suite.
 
-## Not sent
+## Reported to PowerDNS itself
 
-`R-07` in `docs/plan.md`: the OpenAPI divergence in `PowerDNS/pdns` itself —
-`GET /config/{name}` documented but unimplemented, `POST /cryptokeys/{key_id}`
-implemented but undocumented. That belongs in their issue tracker, not in any
-provider, and blocks nothing here.
+[`PowerDNS/pdns#17807`](https://github.com/PowerDNS/pdns/issues/17807) — the
+OpenAPI specification diverges from the implementation in both directions:
+`GET /config/{config_setting_name}` is documented with no handler behind it,
+and `POST` on `cryptokeys/{cryptokey_id}` is registered but absent from the
+specification. Verified on `master` `a74d89a8`, not only on the 5.1.3 tag, and
+checked for duplicates first as their `CONTRIBUTING.md` asks.
+
+This is the fact `docs/standards/powerdns-api-discipline.md` is built on, so
+reporting it is not a courtesy — it is the thing that would let that standard
+be relaxed if fixed.
+
+### On the AI disclosure in that issue
+
+`PowerDNS/pdns` publishes an [`AI_POLICY.md`](https://github.com/PowerDNS/pdns/blob/master/AI_POLICY.md)
+that forbids AI-produced **code**, permits AI use for **bug reports**, and
+requires that any such use be disclosed. The issue therefore carries a
+disclosure block, which is a deliberate exception to this repository's own rule
+against AI attribution.
+
+The two rules do not actually conflict once their scopes are read: ours governs
+what we publish in our own repositories, theirs governs what they accept in
+theirs. Filing without disclosure would have broken their stated terms. The
+seven pull requests to `mmianl/terraform-provider-powerdns` carry no such
+disclosure because that project publishes no such policy — the rule is to
+follow each recipient's terms, not to apply one habit everywhere.
 
 ## Status
 
-Awaiting review. If a maintainer asks for changes, the branch is in this
+Seven pull requests and one issue awaiting review. If a maintainer asks for changes, the branch is in this
 repository and the lab that verified it is `task lab:up`.
