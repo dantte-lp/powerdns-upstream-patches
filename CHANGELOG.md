@@ -85,6 +85,19 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   `plancheck.ExpectEmptyPlan`, the upstream #73 configuration verbatim, and
   negative cases for both masters rules.
 
+- `docs/design/DESIGN-01-target-architecture.md` — the from-scratch versus
+  rewrite comparison, and the 2026 target stack. It records that a conclusion
+  in the capability map is now wrong: `CM-04` §3 wrote off `notify`,
+  `axfr-retrieve`, `rectify` and `cache/flush` as not fitting Terraform's
+  model, which was true under SDKv2 and stopped being true when Terraform 1.14
+  introduced actions.
+
+- `docs/design/DESIGN-02-new-provider-spec.md` — the specification for a new
+  provider, which supersedes phases 3–6 of `plan.md`. The migration is stopped:
+  the obligation that justified it, state continuity for users of the published
+  upstream provider, is discharged by contributing the eight portable defect
+  fixes back rather than by carrying upstream's architecture.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
