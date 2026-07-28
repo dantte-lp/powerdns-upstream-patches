@@ -13,6 +13,7 @@ then the standards, then the evidence.
 | [`development.md`](development.md) | Dev container, the lab, the daily loop. |
 | [`testing.md`](testing.md) | Test layers and the two-backend matrix. |
 | [`release.md`](release.md) | Cutting a release; contributing upstream. |
+| [`upstream-contributions.md`](upstream-contributions.md) | **The seven upstream pull requests**, and what each cost to get right. |
 
 ## Standards
 

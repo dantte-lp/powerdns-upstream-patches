@@ -98,6 +98,20 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   upstream provider, is discharged by contributing the eight portable defect
   fixes back rather than by carrying upstream's architecture.
 
+- `docs/upstream-contributions.md` — the register of the seven pull requests
+  sent to `mmianl/terraform-provider-powerdns`, with what each cost to get
+  right, including the two occasions a fix was incomplete until the tests said
+  so.
+- `README.md` now says what this repository is: a patch queue and a record, not
+  a provider. It is half-migrated by design and will not be released.
+- `AUDIT-01` §4 A-03 corrected. It said status-code handling "varies" and
+  implied the problem was widespread; counting before sending the upstream fix
+  showed 24 of 26 request-issuing methods already check, and only `ListZones`
+  and `ListRecords` did not. The original wording is kept alongside the
+  correction.
+- `docs/plan.md` phase 6 closed: R-02…R-06 and R-08 delivered, R-01 dropped
+  (this repository is no longer a provider), R-07 outstanding.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The

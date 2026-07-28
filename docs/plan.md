@@ -5,7 +5,9 @@ its execution record. Task status is updated **in the same commit as the work**,
 never retrospectively in a batch — a plan updated after the fact is a report,
 not a control.
 
-**Status:** **phases 3–6 superseded** by
+**Status:** phase 6's upstream contributions **delivered** — seven pull
+requests, see [`upstream-contributions.md`](upstream-contributions.md).
+Phases 3–5 **superseded** by
 [`design/DESIGN-02-new-provider-spec.md`](design/DESIGN-02-new-provider-spec.md)
 on 2026-07-28. Phases 1–2 and sprints 0–2 stand as the record of what was
 done and what it taught; the remaining work moves to the new provider.
@@ -300,13 +302,24 @@ update — and is kept as relief work between the two large ones.
 
 | ID | Task | Role | Status |
 |---|---|---|---|
-| R-01 | Signed `v0.2.0` release | PM | `[ ]` |
-| R-02 | Upstream PR: D-01 + D-02, IPv6 masters and update-path validation | DEV | `[ ]` |
-| R-03 | Upstream PR: D-08 + A-03, status-code handling | DEV | `[ ]` |
-| R-04 | Upstream PR: D-04, recursor config name validator | DEV | `[ ]` |
-| R-05 | Upstream PR: D-03 + D-05, backend and `api_dir` diagnostics and docs | DEV | `[ ]` |
-| R-06 | Upstream PR: D-06 + D-07, JSON tag and README | DEV | `[ ]` |
+| R-01 | Signed `v0.2.0` release | PM | `[-]` dropped — this repository is no longer a provider |
+| R-02 | Upstream PR: D-01 + D-02, IPv6 masters and update-path validation | DEV | `[x]` [#75](https://github.com/mmianl/terraform-provider-powerdns/pull/75) |
+| R-03 | Upstream PR: D-08 + A-03, status-code handling | DEV | `[x]` [#80](https://github.com/mmianl/terraform-provider-powerdns/pull/80) |
+| R-04 | Upstream PR: D-04, recursor config name validator | DEV | `[x]` [#79](https://github.com/mmianl/terraform-provider-powerdns/pull/79) |
+| R-05 | Upstream PR: D-03 + D-05, backend and `api_dir` diagnostics and docs | DEV | `[x]` [#81](https://github.com/mmianl/terraform-provider-powerdns/pull/81) |
+| R-06 | Upstream PR: D-06 + D-07, JSON tag and README | DEV | `[x]` [#77](https://github.com/mmianl/terraform-provider-powerdns/pull/77), [#78](https://github.com/mmianl/terraform-provider-powerdns/pull/78) |
 | R-07 | Issue to `PowerDNS/pdns`: the OpenAPI divergence | ARC | `[ ]` |
+| R-08 | **Added.** Upstream PR: explicit TLS minimum on the API client | DEV | `[x]` [#76](https://github.com/mmianl/terraform-provider-powerdns/pull/76) |
+
+R-06 is two pull requests rather than one: the JSON tag is a correctness fix in
+code and the README is documentation, and combining unrelated one-line changes
+makes a reviewer's job harder rather than easier.
+
+R-08 was not in the original plan. It came from semgrep (`S2-10`), which found
+the API client building a `tls.Config` with no floor at all.
+
+The register, including what each pull request cost to get right, is
+[`upstream-contributions.md`](upstream-contributions.md).
 
 R-02…R-06 branch from `origin/main` and follow **upstream's** conventions, not
 this project's — see [`release.md`](release.md). They do not wait for the
