@@ -168,10 +168,20 @@ committing to it for ten.
 | S2-07 | Acceptance on both backends | QA | S2-06 | `[ ]` |
 | S2-08 | Registry docs regenerated | DEV | S2-04 | `[ ]` |
 | S2-09 | **Added mid-sprint.** Schema-parity test between the two mux halves | QA | S2-01 | `[x]` |
+| S2-10 | **Added mid-sprint.** Semgrep in the gate; fix what it found | OPS | — | `[x]` |
 
 `powerdns_zone` first because it is the resource every other one depends on and
 the one carrying two open defects. If the mechanism is wrong, it is cheapest to
 learn here.
+
+**S2-10** added semgrep to the gate on the operator's suggestion. It is not a
+second golangci-lint: it reasons across expressions and it scans `powerdns/`,
+which the Go linter skips until migration. Two findings on the first run, both
+real — a `tls.Config` with no `MinVersion` in the HTTP client, and a dynamic
+URL reaching `urlopen` in the lab automation. The first is a genuine hardening
+and is portable upstream; the second is suppressed with the reason recorded at
+the call site, because the URLs are constants and adopting `requests` to
+satisfy a pattern would be the worse trade.
 
 **S2-09** was not planned and is the most useful thing in the sprint so far.
 `terraform-plugin-mux` refuses to serve halves whose **provider** schemas

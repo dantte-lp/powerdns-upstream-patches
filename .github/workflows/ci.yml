@@ -210,6 +210,21 @@ jobs:
       - name: ty check
         run: uv run ty check scripts/
 
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Complements golangci-lint rather than duplicating it: semgrep reasons
+      # across expressions, which is how the missing TLS MinVersion in
+      # powerdns/config.go was found — a file the Go linter deliberately skips.
+      - name: semgrep
+        run: |
+          semgrep --config=p/golang --config=p/security-audit --config=p/secrets \
+            --metrics=off --error .
+
   action-pins:
     name: Verify Action pins
     runs-on: ubuntu-latest

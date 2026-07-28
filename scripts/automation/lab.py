@@ -94,9 +94,23 @@ def compose(*args: str) -> None:
 
 def api_get(url: str, timeout: float = 3.0) -> list | dict | None:
     """GET a PowerDNS API endpoint, returning None when it is not answering."""
+    # urllib honours file:// and other schemes, so anything reaching urlopen is
+    # checked first. Every caller here passes a constant from SERVICES, but the
+    # check costs nothing and keeps that true if a caller ever stops being
+    # constant.
+    if not url.startswith(("http://", "https://")):
+        msg = f"refusing to open a non-HTTP URL: {url}"
+        raise ValueError(msg)
+
     request = urllib.request.Request(url, headers={"X-API-Key": API_KEY})  # noqa: S310
+
+    # The urlopen below is suppressed for semgrep's dynamic-urllib rule. The URL
+    # is not attacker-controlled — every caller passes a constant from SERVICES,
+    # and the scheme is checked above. Adopting requests purely to satisfy the
+    # pattern would add a dependency to a loopback health check, which is the
+    # worse trade.
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310  # nosemgrep
             if response.status != HTTP_OK:
                 return None
             return json.loads(response.read())
