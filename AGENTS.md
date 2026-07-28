@@ -151,6 +151,7 @@ A pull request does not merge with an `error`-tier finding.
 | Acceptance against the lab | `task testacc` |
 | golangci-lint v2 | `task lint` |
 | Python — ruff + ty | `task py` |
+| Semantic security scan | `task semgrep` |
 | Action pins resolve | `task lint:pins` |
 | Vulnerabilities | `task vulncheck` · `task osv-scan` |
 | Terraform fmt | `task tf:fmt:check` |

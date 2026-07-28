@@ -1,0 +1,8 @@
+# Semgrep's own defaults plus this repository's.
+vendor/
+bin/
+dist/
+.worktrees/
+node_modules/
+# Fixtures deliberately containing bad input for the pin checker's tests.
+test/fixtures/

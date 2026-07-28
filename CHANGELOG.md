@@ -71,6 +71,11 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   the plugin handshake inside a consumer's `terraform plan`. Verified by
   drifting a description on purpose and confirming the test fails.
 
+- Semgrep in the gate — `task semgrep`, inside `task all`, and a CI job.
+  Rulesets `p/golang`, `p/security-audit`, `p/secrets`; 310 rules. It
+  complements golangci-lint rather than duplicating it, and reaches
+  `powerdns/`, which the Go linter deliberately skips until migration.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
@@ -95,6 +100,13 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   effect.
 
 ### Security
+
+- The PowerDNS HTTP client sets `MinVersion: tls.VersionTLS12` explicitly.
+  Found by semgrep in `powerdns/config.go`, which built a `tls.Config` with no
+  floor at all. Go's own default is already 1.2, so this states the intent and
+  prevents a future default change from lowering it. Not 1.3: the API is
+  frequently published through a front end that has not moved, and failing to
+  reach the server is worse than the marginal difference.
 
 - All four GitHub Actions in `release.yml` are now pinned by commit SHA instead
   of a floating tag. Found by the new pin check on its first run, in a workflow
