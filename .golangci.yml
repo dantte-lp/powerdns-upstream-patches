@@ -242,9 +242,21 @@ linters:
       - std-error-handling
       - common-false-positives
     paths:
-      # Vendored upstream code, removed during the migration but excluded
-      # while it is still present.
-      - vendor
+      # The inherited SDKv2 package, excluded until it is migrated.
+      #
+      # Running the full gate against it at the fork point produced 729
+      # findings, 275 of them error-tier — it has never been linted at this
+      # level. Fixing them here would be wrong twice over: it would mix a
+      # mechanical clean-up into whatever change is under review, and it would
+      # rewrite files that Sprints 2-4 replace outright with framework
+      # resources.
+      #
+      # So the debt is made explicit rather than hidden: new code under
+      # internal/ is linted from its first line, and this exclusion narrows as
+      # each resource ports. The last resource to move deletes it, and its
+      # removal is the gate that proves the migration is complete (plan.md
+      # S4-10).
+      - powerdns/
     rules:
       # Plugin Framework Schema/Metadata/ModifyPlan bodies are long and deeply
       # nested by design — attribute maps, not business logic.
