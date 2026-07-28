@@ -28,6 +28,7 @@ services:
         UV_VERSION: "0.11.33"
         RUFF_VERSION: "0.16.0"
         TY_VERSION: "0.0.64"
+        TASK_VERSION: "v3.52.0"
 
     init: true
     command: ["sleep", "infinity"]
@@ -47,7 +48,7 @@ services:
       CHECKPOINT_DISABLE: "1"
       TF_IN_AUTOMATION: "1"
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
-      # Acceptance wiring. Empty means `make test` runs unit tests only.
+      # Acceptance wiring. Empty means `task test` runs unit tests only.
       # The lab endpoints are reachable from this container over the shared
       # network created by compose.lab.yml.
       PDNS_SERVER_URL: "${PDNS_SERVER_URL:-}"

@@ -23,13 +23,13 @@ Pinned exactly, mirrored between `Containerfile.dev` build arguments and
 ## Gates
 
 ```sh
-make lint-py        # ruff check + ruff format --check
-make fmt-py         # ruff format + ruff check --fix
-make typecheck-py   # ty check
-make py             # lint-py + typecheck-py
+task py:lint        # ruff check + ruff format --check
+task py:fmt         # ruff format + ruff check --fix
+task py:typecheck   # ty check
+task py             # lint-py + typecheck-py
 ```
 
-`make py` is part of `make all`, so the Python gate blocks a pull request in
+`task py` is part of `task all`, so the Python gate blocks a pull request in
 exactly the way the Go gate does. Python that only ever runs on a developer's
 machine is still code someone else has to read.
 

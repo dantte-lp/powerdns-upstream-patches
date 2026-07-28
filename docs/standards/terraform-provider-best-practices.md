@@ -113,7 +113,7 @@ message must state the requirement**, not relay a bare `422`.
    against the lab, on **every backend the resource supports**.
 9. Drift: an out-of-band change in PowerDNS is reported by
    `terraform plan -refresh-only`.
-10. Registry documentation regenerated (`make docs`), `make docs-check` clean.
+10. Registry documentation regenerated (`task docs`), `task docs:check` clean.
 11. `CHANGELOG.md` `[Unreleased]` updated.
 12. Any new claim about PowerDNS behaviour corroborated against the sources and
     the lab, and cited.

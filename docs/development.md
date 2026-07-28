@@ -13,12 +13,12 @@ podman-compose --version
 ## First run
 
 ```sh
-make up          # build and start the dev container
-make shell       # a shell inside it
-make versions    # confirm the pinned toolchain
+task up          # build and start the dev container
+task shell       # a shell inside it
+task versions    # confirm the pinned toolchain
 ```
 
-`make up` builds `golang:1.26-trixie` with the toolchain baked in and pinned by
+`task up` builds `golang:1.26-trixie` with the toolchain baked in and pinned by
 build argument — Go 1.26.5, golangci-lint v2.12.2, Terraform 1.15.8, OpenTofu
 1.12.5, Terragrunt 1.1.1, tfplugindocs v0.25.0, goreleaser v2.17.1, gopls, plus
 the documentation linters. Versions live in one place,
@@ -27,7 +27,7 @@ the documentation linters. Versions live in one place,
 
 ## The lab
 
-Acceptance tests need PowerDNS. `make lab-up` brings up four containers:
+Acceptance tests need PowerDNS. `task lab:up` brings up four containers:
 
 | Service | Endpoint | Why it exists |
 |---|---|---|
@@ -41,10 +41,10 @@ Two authoritative instances is not redundancy. On gpgsql a view write returns
 fixture cannot distinguish "unsupported" from "not configured". See ADR 0005.
 
 ```sh
-make lab-up       # start and wait for every API to answer
-make lab-verify   # assert versions and backends match the pinned references
-make lab-status   # container state and reported versions
-make lab-down     # remove, including volumes
+task lab:up       # start and wait for every API to answer
+task lab:verify   # assert versions and backends match the pinned references
+task lab:status   # container state and reported versions
+task lab:down     # remove, including volumes
 ```
 
 The lab is driven by `scripts/automation/lab.py` through **podman-py**, not by
@@ -56,16 +56,16 @@ upgraded image is caught before it produces a confusing test failure.
 ## The daily loop
 
 ```sh
-make build        # compile the provider
-make test         # unit tests, race detector on
-make lint         # golangci-lint v2
-make all          # the pre-PR gate
+task build        # compile the provider
+task test         # unit tests, race detector on
+task lint         # golangci-lint v2
+task all          # the pre-PR gate
 ```
 
-`make all` runs build, unit tests, lint, `terraform fmt -check`, the
+`task all` runs build, unit tests, lint, `terraform fmt -check`, the
 documentation linters and `govulncheck`. It does not need the lab.
 
-`make verify` is `make all` plus `lab-verify` and the acceptance suite. Run it
+`task verify` is `task all` plus `lab-verify` and the acceptance suite. Run it
 before any pull request that touches a resource.
 
 ## Tooling you are expected to use
@@ -84,7 +84,7 @@ before any pull request that touches a resource.
 ## Manual testing against a local build
 
 ```sh
-make install
+task install
 ```
 
 Then point Terraform at the local binary with a `dev_overrides` block in
@@ -109,7 +109,7 @@ directly.
 ```sh
 scripts/worktree.sh new fix/zone/ipv6-masters
 cd ../.worktrees/fix/zone/ipv6-masters
-make up && make shell
+task up && task shell
 ```
 
 Branch naming per
@@ -126,7 +126,7 @@ Pushing to `origin` is a mistake, not a shortcut.
 
 ## Troubleshooting
 
-**The lab starts but an API never answers.** `make lab-status` reports each
+**The lab starts but an API never answers.** `task lab:status` reports each
 container's state and version. A container that is `running` but unreachable is
 usually a configuration parse failure — check `podman logs pdns-lab-<name>`.
 

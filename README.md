@@ -98,19 +98,19 @@ You'll also need to have `$GOPATH/bin` in your `$PATH`.
 Make sure the changes you performed pass linting:
 
 ```sh
-$ make lint
+$ task lint
 ```
 
-To install the provider, run `make build`. This will build the provider and put the provider binary in the current working directory.
+To install the provider, run `task build`. This will build the provider and put the provider binary in the current working directory.
 
 ```sh
-$ make build
+$ task build
 ```
 
-In order to run local provider tests, you can simply run `make test`.
+In order to run local provider tests, you can simply run `task test`.
 
 ```sh
-$ make test
+$ task test
 ```
 
 For running acceptance tests locally, you'll need to use `docker-compose` to prepare the test environment:
@@ -119,14 +119,14 @@ For running acceptance tests locally, you'll need to use `docker-compose` to pre
 docker-compose run --rm setup
 ```
 
-After setup is done, run the acceptance tests with `make testacc` (note the env variables needed to interact with the PowerDNS container)
+After setup is done, run the acceptance tests with `task testacc` (note the env variables needed to interact with the PowerDNS container)
 
 - HTTP
 
 ```sh
 ~$  PDNS_SERVER_URL=http://localhost:8081 \
     PDNS_API_KEY=secret \
-    make testacc
+    task testacc
 ```
 
 - HTTPS
@@ -135,7 +135,7 @@ After setup is done, run the acceptance tests with `make testacc` (note the env 
 ~$  PDNS_SERVER_URL=localhost:4443 \
     PDNS_API_KEY=secret \
     PDNS_CACERT=$(cat ./tests/files/ssl/rootCA/rootCA.crt) \
-    make testacc
+    task testacc
 ```
 
 And finally cleanup containers spun up by `docker-compose`:

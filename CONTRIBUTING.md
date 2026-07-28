@@ -6,8 +6,8 @@ short path through it.
 ## Before you start
 
 ```sh
-make up && make shell     # dev container — no host toolchain
-make lab-up               # PowerDNS fixture, both backends
+task up && task shell     # dev container — no host toolchain
+task lab:up               # PowerDNS fixture, both backends
 ```
 
 ## The loop
@@ -19,7 +19,7 @@ make lab-up               # PowerDNS fixture, both backends
 3. Establish PowerDNS behaviour from the sources plus a live round-trip, not
    from the OpenAPI specification — it diverges from the implementation in both
    directions.
-4. `make all` before pushing. `make verify` if you touched a resource.
+4. `task all` before pushing. `task verify` if you touched a resource.
 5. Update `CHANGELOG.md` under `[Unreleased]`.
 6. Open a pull request whose title is a Conventional Commit subject.
 

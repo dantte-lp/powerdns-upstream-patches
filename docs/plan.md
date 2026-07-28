@@ -59,6 +59,7 @@ Exit gate: ADRs frozen; standards set published; public surface rules agreed.
 | D-08 | Standards: Go 1.26, provider best practices, Terragrunt | ARC | `[x]` |
 | D-09 | Standard: PowerDNS API discipline | ARC | `[x]` |
 | D-10 | Standard: Python tooling — uv, ruff, ty | ARC | `[x]` |
+| D-11 | ADR 0007 — Task replaces Make as the command interface | ARC | `[x]` |
 
 ---
 
@@ -104,6 +105,7 @@ Goal: the module is what it claims to be, on current dependencies, without
 | S1-07 | **Added mid-sprint.** Remove `GNUmakefile` — GNU make prefers it over `Makefile`, so the new one was dead on arrival | OPS | — | `[x]` |
 | S1-08 | **Added mid-sprint.** Fix two reachable CVEs found by `govulncheck` | DEV | S1-04 | `[x]` |
 | S1-09 | **Added mid-sprint.** Decide how to carry the inherited lint debt | ARC | S1-05 | `[x]` |
+| S1-10 | **Added mid-sprint.** Replace `Makefile` with a Taskfile (ADR 0007) | OPS | S1-07 | `[x]` |
 
 Not a release: nothing user-visible changes. The import-path change is invisible
 to a consumer because the provider is consumed as a binary.
@@ -126,6 +128,11 @@ code, not merely present in the dependency graph:
 Both are indirect dependencies, which is why the direct-dependency check came
 back clean and the vulnerability check did not. Bumped explicitly; the scan now
 reports no vulnerabilities.
+
+**S1-10** followed directly from S1-07. Having removed one make entry point
+because two of them collide silently, keeping a `Makefile` alongside a
+`Taskfile` would repeat the mistake in a different key — so the `Makefile`
+is replaced rather than wrapped. ADR 0007 records what is given up.
 
 **S1-09** — the full gate against the inherited `powerdns/` package produced
 **729 findings, 275 of them error-tier**. Fixing them in this sprint was

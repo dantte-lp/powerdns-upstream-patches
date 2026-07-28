@@ -8,7 +8,7 @@ upstream. They use different conventions and different version series.
 1. Confirm the gate is green, including the lab:
 
    ```sh
-   make verify
+   task verify
    ```
 
 2. Move `[Unreleased]` into a dated section in `CHANGELOG.md`:
