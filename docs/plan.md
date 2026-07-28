@@ -5,7 +5,7 @@ its execution record. Task status is updated **in the same commit as the work**,
 never retrospectively in a batch — a plan updated after the fact is a report,
 not a control.
 
-**Status:** phase 2 (design) closed · phase 3 (migration) open
+**Status:** phase 3 (migration) open · sprint 1 closed, sprint 2 next
 **Last updated:** 2026-07-28
 
 ## Legend
@@ -88,22 +88,53 @@ Evidence: lab brought up from nothing and verified — gpgsql view write `422`,
 LMDB `204`, recursor zone write `201`, seven tables in the PostgreSQL schema,
 teardown to zero containers. Python gates clean under ruff 0.16.0 and ty 0.0.64.
 
-### Sprint 1 — Module identity and dependencies · `[ ]`
+### Sprint 1 — Module identity and dependencies · `[x]` closed 2026-07-28
 
 Goal: the module is what it claims to be, on current dependencies, without
 `vendor/`. No behaviour change.
 
 | ID | Task | Role | Depends | Status |
 |---|---|---|---|---|
-| S1-01 | Module path → `github.com/dantte-lp/terraform-provider-powerdns` (S-01) | DEV | — | `[ ]` |
-| S1-02 | Go directive → 1.26.5; remove the hard-coded `go-version` in CI (S-06) | DEV | S1-01 | `[ ]` |
-| S1-03 | Remove `vendor/` and `GOFLAGS=-mod=vendor` (S-03) | DEV | S1-01 | `[ ]` |
-| S1-04 | Dependencies to latest pinned; `go mod tidy` | DEV | S1-03 | `[ ]` |
-| S1-05 | `make all` green on the new module path | DEV | S1-04 | `[ ]` |
-| S1-06 | `CHANGELOG.md` entry | PM | S1-05 | `[ ]` |
+| S1-01 | Module path → `github.com/dantte-lp/terraform-provider-powerdns` (S-01) | DEV | — | `[x]` |
+| S1-02 | Go directive → 1.26.5; drop the stale `check.yml` pinning 1.26.1 (S-06) | DEV | S1-01 | `[x]` |
+| S1-03 | Remove `vendor/` and `GOFLAGS=-mod=vendor` (S-03) | DEV | S1-01 | `[x]` |
+| S1-04 | Dependencies to latest pinned; `go mod tidy` | DEV | S1-03 | `[x]` |
+| S1-05 | Gate green on the new module path | DEV | S1-04 | `[x]` |
+| S1-06 | `CHANGELOG.md` entry | PM | S1-05 | `[x]` |
+| S1-07 | **Added mid-sprint.** Remove `GNUmakefile` — GNU make prefers it over `Makefile`, so the new one was dead on arrival | OPS | — | `[x]` |
+| S1-08 | **Added mid-sprint.** Fix two reachable CVEs found by `govulncheck` | DEV | S1-04 | `[x]` |
+| S1-09 | **Added mid-sprint.** Decide how to carry the inherited lint debt | ARC | S1-05 | `[x]` |
 
-Not a release: nothing user-visible changes. The import-path change is
-invisible to a consumer because the provider is consumed as a binary.
+Not a release: nothing user-visible changes. The import-path change is invisible
+to a consumer because the provider is consumed as a binary.
+
+Three things were discovered during the sprint rather than planned, and each is
+recorded above rather than folded silently into an existing task.
+
+**S1-07** was a defect in sprint 0's own work: `Makefile` was added while
+upstream's `GNUmakefile` was still present, and GNU make resolves `GNUmakefile`
+first. Every `make` target added in sprint 0 was unreachable until this landed.
+
+**S1-08** — `govulncheck` reported two vulnerabilities reachable from this
+code, not merely present in the dependency graph:
+
+| Advisory | Module | Found | Fixed |
+|---|---|---|---|
+| GO-2026-6061 | `google.golang.org/grpc` | v1.79.3 | v1.82.1 |
+| GO-2026-5970 | `golang.org/x/text` | v0.37.0 | v0.39.0 |
+
+Both are indirect dependencies, which is why the direct-dependency check came
+back clean and the vulnerability check did not. Bumped explicitly; the scan now
+reports no vulnerabilities.
+
+**S1-09** — the full gate against the inherited `powerdns/` package produced
+**729 findings, 275 of them error-tier**. Fixing them in this sprint was
+rejected: it would mix a mechanical clean-up into an unrelated change, and it
+would rewrite files that sprints 2-4 replace outright. The package is excluded
+in `.golangci.yml` with that reasoning written at the exclusion. New code under
+`internal/` is linted from its first line; the exclusion narrows as each
+resource ports, and S4-10 deletes it. Its removal is the gate that proves the
+migration is complete.
 
 ### Sprint 2 — Mux server and the first resource · `[ ]`
 
@@ -112,7 +143,7 @@ committing to it for ten.
 
 | ID | Task | Role | Depends | Status |
 |---|---|---|---|---|
-| S2-01 | `main.go`: `tf5to6server.UpgradeServer` + `tf6muxserver` | DEV | S1-05 | `[ ]` |
+| S2-01 | `main.go`: `tf5to6server.UpgradeServer` + `tf6muxserver` | DEV | S1-05 `[x]` | `[ ]` |
 | S2-02 | Manifest declares protocol 6.0 (S-02) | DEV | S2-01 | `[ ]` |
 | S2-03 | Layout: `internal/provider`, `internal/client/pdns` (S-04) | ARC + DEV | S2-01 | `[ ]` |
 | S2-04 | Port `powerdns_zone` to the framework | DEV | S2-03 | `[ ]` |
@@ -226,6 +257,7 @@ as authoritative; reporting it is a courtesy to the next person.
 | `ty` blocks more than it catches | Python gate becomes noise | Recorded per [`standards/python-tooling.md`](standards/python-tooling.md); removal would be an ADR |
 | Upstream diverges under the contribution PRs | Cherry-picks stop applying | One defect per PR, opened early, rebased rather than batched |
 | DNSSEC private key in plain-text state | Secret exposure | C-01 settles the mechanism before implementation |
+| The `powerdns/` lint exclusion outlives the migration | 729 findings quietly permanent | S4-10 deletes the exclusion; it cannot be closed while the path is still listed |
 
 ## How this document is maintained
 

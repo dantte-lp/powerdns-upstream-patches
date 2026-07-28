@@ -43,6 +43,40 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
 - CI workflow with an acceptance matrix across both backends and a Python
   lint job; all GitHub Actions pinned by commit SHA.
 
+### Changed
+
+- Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
+  inherited path named the retired `terraform-providers` GitHub organisation
+  and resolved to nothing. Invisible to consumers — the provider is used as a
+  binary, not imported.
+- Go directive raised to 1.26.5.
+
+### Removed
+
+- `vendor/` — 29 MB of vendored dependencies, along with
+  `GOFLAGS=-mod=vendor`. `go.sum` provides the reproducibility guarantee
+  vendoring was there for.
+- `GNUmakefile`, superseded by `Makefile`. Both were present after the previous
+  change, and GNU make resolves `GNUmakefile` first — so every target added
+  then was unreachable until this removal.
+- `.github/workflows/check.yml`, superseded by `ci.yml`. It pinned Go 1.26.1 in
+  four places, which is how a toolchain bump would have silently failed to take
+  effect.
+
+### Security
+
+- `google.golang.org/grpc` to v1.82.1 (GO-2026-6061) and `golang.org/x/text` to
+  v0.39.0 (GO-2026-5970). Both were reachable from this code, not merely
+  present in the dependency graph; `govulncheck` now reports none.
+
+### Fixed
+
+- The inherited `powerdns/` package is excluded from `golangci-lint` with the
+  reasoning recorded at the exclusion. The gate against it produced 729
+  findings, 275 error-tier; fixing them here would rewrite files that the
+  framework migration replaces. New code under `internal/` is linted from its
+  first line and the exclusion narrows as each resource ports.
+
 ## [0.1.0] — 2026-07-28
 
 ### Added

@@ -7,7 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/terraform-providers/terraform-provider-powerdns/pathorcontents"
+
+	"github.com/dantte-lp/terraform-provider-powerdns/pathorcontents"
 )
 
 // Config describes the configuration interface of this provider
