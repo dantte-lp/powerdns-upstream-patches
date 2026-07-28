@@ -1,0 +1,38 @@
+# Local hooks only: everything runs in the dev container, so a hook that needs
+# a host toolchain would break the "no host toolchain" rule in AGENTS.md.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(vendor/|.*\.md$)'
+      - id: end-of-file-fixer
+        exclude: '^vendor/'
+      - id: check-merge-conflict
+      - id: check-yaml
+        exclude: '^(vendor/|deployments/compose/)'
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: commitlint
+        language: system
+        stages: [commit-msg]
+        entry: podman-compose -f deployments/compose/compose.dev.yml exec -T dev
+               npx --no-install commitlint --config .commitlintrc.yaml --edit
+
+      - id: gofumpt
+        name: gofumpt
+        language: system
+        types: [go]
+        exclude: '^vendor/'
+        entry: podman-compose -f deployments/compose/compose.dev.yml exec -T dev gofumpt -l -w
+
+      - id: no-ai-attribution
+        name: no AI attribution
+        language: system
+        stages: [commit-msg]
+        entry: scripts/check-no-ai-attribution.sh

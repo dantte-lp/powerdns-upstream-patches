@@ -1,0 +1,83 @@
+# compose.dev.yml — Compose Specification (no top-level version: key).
+# See: https://github.com/compose-spec/compose-spec/blob/main/spec.md
+#
+# Run with: podman-compose -f deployments/compose/compose.dev.yml up -d
+# Shell:    podman-compose -f deployments/compose/compose.dev.yml exec dev bash
+
+name: terraform-provider-powerdns
+
+services:
+  dev:
+    container_name: terraform-provider-powerdns-dev
+    image: localhost/terraform-provider-powerdns-dev:local
+    build:
+      context: ../..
+      dockerfile: deployments/containers/Containerfile.dev
+      args:
+        GO_VERSION: "1.26"
+        GOLANGCI_LINT_VERSION: "v2.12.2"
+        GOVULNCHECK_VERSION: "v1.6.0"
+        OSV_SCANNER_VERSION: "v2.4.0"
+        TFPLUGINDOCS_VERSION: "v0.25.0"
+        GORELEASER_VERSION: "v2.17.1"
+        TERRAFORM_VERSION: "1.15.8"
+        OPENTOFU_VERSION: "1.12.5"
+        TERRAGRUNT_VERSION: "1.1.1"
+        NODE_MAJOR: "22"
+        PODMAN_PY_VERSION: "5.7.0"
+        UV_VERSION: "0.11.33"
+        RUFF_VERSION: "0.16.0"
+        TY_VERSION: "0.0.64"
+
+    init: true
+    command: ["sleep", "infinity"]
+    working_dir: /app
+
+    volumes:
+      - type: bind
+        source: ../..
+        target: /app
+        bind:
+          create_host_path: true
+
+    environment:
+      GOFLAGS: "-buildvcs=false"
+      GOCACHE: /tmp/go-cache
+      GOMODCACHE: /go/pkg/mod
+      CHECKPOINT_DISABLE: "1"
+      TF_IN_AUTOMATION: "1"
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      # Acceptance wiring. Empty means `make test` runs unit tests only.
+      # The lab endpoints are reachable from this container over the shared
+      # network created by compose.lab.yml.
+      PDNS_SERVER_URL: "${PDNS_SERVER_URL:-}"
+      PDNS_RECURSOR_SERVER_URL: "${PDNS_RECURSOR_SERVER_URL:-}"
+      PDNS_SERVER_URL_LMDB: "${PDNS_SERVER_URL_LMDB:-}"
+      PDNS_API_KEY: "${PDNS_API_KEY:-}"
+      TF_ACC: "${TF_ACC:-}"
+
+    cap_drop:
+      - ALL
+
+    security_opt:
+      - "label=disable"
+      - "no-new-privileges:true"
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "pgrep", "-x", "sleep"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+    develop:
+      watch:
+        - action: sync
+          path: ../..
+          target: /app
+          ignore:
+            - bin/
+            - dist/
+            - .git/
+            - .worktrees/
