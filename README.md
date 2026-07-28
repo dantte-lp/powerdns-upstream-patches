@@ -1,14 +1,28 @@
 # terraform-provider-powerdns
 
-> **This is a fork** of [`mmianl/terraform-provider-powerdns`](https://github.com/mmianl/terraform-provider-powerdns),
-> taken at `0dac0e7` (v2.3.0), being moved to the Terraform Plugin Framework and
-> a full standards set. Contributions intended for upstream are opened against
-> that repository, not this one — see [`docs/release.md`](docs/release.md).
+> **This repository is a patch queue, not a provider.**
 >
-> **Contributors and agents start at [`AGENTS.md`](AGENTS.md).**
-> Documentation index: [`docs/README.md`](docs/README.md).
-> Coverage analysis and the defect register live in the sibling
-> `powerdns-capability-map` repository.
+> It began as a fork of [`mmianl/terraform-provider-powerdns`](https://github.com/mmianl/terraform-provider-powerdns)
+> intended to migrate the provider to the Terraform Plugin Framework. That
+> migration was stopped on 2026-07-28 — see
+> [`docs/design/DESIGN-02-new-provider-spec.md`](docs/design/DESIGN-02-new-provider-spec.md)
+> for why, and for what replaces it.
+>
+> What remains here has two purposes:
+>
+> 1. **Upstream contributions.** Seven pull requests against
+>    `mmianl/terraform-provider-powerdns`, each branched from `origin/main` and
+>    following upstream's conventions. See
+>    [`docs/upstream-contributions.md`](docs/upstream-contributions.md).
+> 2. **The record.** The standards set, the fork audit, the two design
+>    documents and the delivery plan, which the new provider carries forward.
+>
+> **Do not install this provider.** It is half-migrated by design and will not
+> be released. Use `mmianl/powerdns` upstream, or the new provider when it
+> exists.
+>
+> Contributors and agents start at [`AGENTS.md`](AGENTS.md); the documentation
+> index is [`docs/README.md`](docs/README.md).
 
 The Terraform PowerDNS provider allows you to manage PowerDNS zones, records, views, and networks using Terraform. It is maintained by mmianl.
 
