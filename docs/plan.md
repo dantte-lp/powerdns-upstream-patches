@@ -164,10 +164,11 @@ committing to it for ten.
 | S2-03 | Layout: `internal/provider`, `internal/client`, `internal/resources/<area>` | ARC + DEV | S2-01 | `[x]` |
 | S2-04 | Port `powerdns_zone` to the framework | DEV | S2-03 | `[x]` |
 | S2-05 | Fix D-01 and D-02 in the ported resource — `net.SplitHostPort`, validator on both paths | DEV | S2-04 | `[x]` |
-| S2-06 | State-continuity acceptance test: apply on SDKv2, refresh on framework | QA | S2-04 | `[ ]` |
-| S2-07 | Acceptance on both backends | QA | S2-06 | `[ ]` |
+| S2-06 | State-continuity acceptance test: apply on SDKv2, refresh on framework | QA | S2-04 | `[!]` blocked — needs the released 2.3.0 provider as an external provider; see S2-11 |
+| S2-07 | Acceptance on both backends | QA | S2-04 | `[x]` |
 | S2-08 | Registry docs regenerated | DEV | S2-04 | `[ ]` |
 | S2-09 | **Added mid-sprint.** Schema-parity test between the two mux halves | QA | S2-01 | `[x]` |
+| S2-11 | **Added mid-sprint.** Inherited acceptance harness cannot run behind the mux — import cycle | ARC | — | `[!]` blocked on the client leaving `powerdns/` |
 | S2-10 | **Added mid-sprint.** Semgrep in the gate; fix what it found | OPS | — | `[x]` |
 
 `powerdns_zone` first because it is the resource every other one depends on and
@@ -179,6 +180,24 @@ exists because a resource needs the client bundle and the provider needs the
 resource, so holding the bundle in `internal/provider` is an import cycle. It
 was cheaper to learn this on the first port than on the fifth — which is the
 argument ADR 0003 makes for doing one resource before committing to ten.
+
+**S2-11** is the sprint's most consequential finding and it changes the plan.
+
+The inherited acceptance tests cannot be moved behind the mux: an in-package
+test in `powerdns/` cannot import `internal/provider`, because that package
+imports `powerdns` — a cycle Go rejects for in-package tests. Nine of those
+tests declare a `powerdns_zone` in their configuration, which the SDKv2 half no
+longer serves, so they cannot pass as written either.
+
+The cycle exists because `internal/provider` reuses `powerdns.Config` and the
+client types. That reuse looked like thrift and is now the constraint. It clears
+only when the client moves out of `powerdns/` — which phase 4 already schedules
+as C-02, "extend ZoneInfo to the full 24 attributes", and which DNSSEC and TSIG
+require regardless.
+
+Until then the acceptance job is scoped to `./internal/...`, and both the CI
+workflow and the Taskfile say why at the point of exclusion rather than in a
+commit message nobody will find.
 
 **S2-10** added semgrep to the gate on the operator's suggestion. It is not a
 second golangci-lint: it reasons across expressions and it scans `powerdns/`,

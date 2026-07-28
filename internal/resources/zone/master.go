@@ -115,3 +115,65 @@ func (v mastersValidator) ValidateSet(
 		}
 	}
 }
+
+// sameMaster reports whether two master entries denote the same endpoint.
+//
+// PowerDNS normalises what it stores: an IPv6 address written
+// fd92:81e1:e314:ea7b:0000:1234:5678:60ab comes back as
+// fd92:81e1:e314:ea7b:0:1234:5678:60ab. Comparing the strings would make every
+// such configuration permanently dirty, so the comparison is on the parsed
+// value. Verified against auth-5.1.3.
+func sameMaster(a, b string) bool {
+	if a == b {
+		return true
+	}
+
+	hostA, portA := splitMaster(a)
+	hostB, portB := splitMaster(b)
+	if portA != portB {
+		return false
+	}
+
+	ipA, ipB := net.ParseIP(hostA), net.ParseIP(hostB)
+	if ipA == nil || ipB == nil {
+		return false
+	}
+	return ipA.Equal(ipB)
+}
+
+// splitMaster returns the host and port parts of a master entry. A bare
+// address yields an empty port.
+func splitMaster(value string) (string, string) {
+	if net.ParseIP(value) != nil {
+		return value, ""
+	}
+
+	host, port, err := net.SplitHostPort(value)
+	if err != nil {
+		return value, ""
+	}
+	return host, port
+}
+
+// preserveMasterSpelling returns the server's list with each entry replaced by
+// the configured spelling where the two denote the same endpoint. Entries the
+// configuration does not mention are kept as the server reports them, which is
+// how drift from an out-of-band change still shows up.
+func preserveMasterSpelling(configured, fromServer []string) []string {
+	if len(configured) == 0 {
+		return fromServer
+	}
+
+	preserved := make([]string, 0, len(fromServer))
+	for _, server := range fromServer {
+		match := server
+		for _, want := range configured {
+			if sameMaster(want, server) {
+				match = want
+				break
+			}
+		}
+		preserved = append(preserved, match)
+	}
+	return preserved
+}
