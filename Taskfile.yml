@@ -42,6 +42,22 @@ env:
   PDNS_API_KEY: labapikey
 
 tasks:
+  # Internal guard. Every task that shells into the dev container depends on
+  # it; without this the failure is a podman-compose stack trace rather than a
+  # sentence telling you to run `task up`.
+  _dev-running:
+    internal: true
+    preconditions:
+      - sh: podman container exists terraform-provider-powerdns-dev
+        msg: "dev container is not running — run: task up"
+
+  # Internal guard for anything that talks to the lab.
+  _lab-running:
+    internal: true
+    preconditions:
+      - sh: podman container exists pdns-lab-auth-pg
+        msg: "lab is not running — run: task lab:up"
+
   default:
     desc: List the available tasks
     silent: true
@@ -103,6 +119,7 @@ tasks:
 
   build:
     desc: Compile the provider
+    deps: [_dev-running]
     sources:
       - '**/*.go'
       - go.mod
@@ -114,6 +131,7 @@ tasks:
 
   install:
     desc: Install the provider for manual dev_overrides testing
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go install -ldflags="{{.LDFLAGS}}" .'
 
@@ -121,16 +139,19 @@ tasks:
 
   test:
     desc: Unit tests, race detector on
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go test ./... -race -count=1'
 
   test:v:
     desc: Unit tests, verbose
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go test ./... -race -count=1 -v'
 
   test:run:
     desc: Run one test — task test:run RUN=TestX PKG=./internal/x
+    deps: [_dev-running]
     requires:
       vars: [RUN]
     cmds:
@@ -138,7 +159,7 @@ tasks:
 
   testacc:
     desc: Acceptance tests against the lab
-    deps: [lab:verify]
+    deps: [_dev-running, _lab-running]
     env:
       TF_ACC: '1'
     cmds:
@@ -148,26 +169,31 @@ tasks:
 
   lint:
     desc: golangci-lint v2
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} golangci-lint run ./...'
 
   lint:fix:
     desc: golangci-lint with --fix
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} golangci-lint run --fix ./...'
 
   fmt:
     desc: Apply the Go formatters
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} golangci-lint fmt ./...'
 
   vulncheck:
     desc: govulncheck
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} govulncheck ./...'
 
   osv-scan:
     desc: osv-scanner
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} osv-scanner scan --recursive .'
 
@@ -178,6 +204,7 @@ tasks:
 
   gosec:
     desc: gosec only
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} golangci-lint run --enable-only gosec ./...'
 
@@ -187,18 +214,21 @@ tasks:
 
   py:lint:
     desc: ruff check and format check
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} uv run ruff check scripts/'
       - '{{.EXEC}} uv run ruff format --check scripts/'
 
   py:fmt:
     desc: ruff format and autofix
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} uv run ruff format scripts/'
       - '{{.EXEC}} uv run ruff check --fix scripts/'
 
   py:typecheck:
     desc: ty type check (pre-1.0 — a ty-only failure is reviewed, not obeyed)
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} uv run ty check scripts/'
 
@@ -212,11 +242,13 @@ tasks:
 
   tf:fmt:
     desc: terraform fmt on examples
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} terraform fmt -recursive examples'
 
   tf:fmt:check:
     desc: terraform fmt -check on examples
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} terraform fmt -check -recursive examples'
 
@@ -224,16 +256,19 @@ tasks:
 
   docs:
     desc: Generate registry documentation from the schema
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} tfplugindocs generate --provider-name {{.TYPE}}'
 
   docs:check:
     desc: Validate the registry documentation
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} tfplugindocs validate --provider-name {{.TYPE}}'
 
   docs:lint:
     desc: markdownlint, yamllint, cspell and the registry docs check
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} markdownlint-cli2 "**/*.md" "#node_modules" "#bin" "#dist"'
       - '{{.EXEC}} uv run yamllint -c .yamllint.yaml .'
@@ -244,11 +279,13 @@ tasks:
 
   tidy:
     desc: go mod tidy
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go mod tidy'
 
   download:
     desc: go mod download
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go mod download'
 
@@ -283,6 +320,7 @@ tasks:
 
   versions:
     desc: Report the pinned toolchain versions
+    deps: [_dev-running]
     cmds:
       - '{{.EXEC}} go version'
       - '{{.EXEC}} terraform version'
