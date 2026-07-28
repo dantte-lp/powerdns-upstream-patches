@@ -27,7 +27,15 @@ type Config struct {
 
 // Client returns a new client for accessing PowerDNS
 func (c *Config) Clients(ctx context.Context) (*PowerDNSClient, *RecursorClient, error) {
-	tlsConfig := &tls.Config{}
+	// TLS 1.2 is the floor, not 1.3: the PowerDNS API is frequently published
+	// through an nginx or haproxy front end that has not been moved to 1.3, and
+	// silently failing to reach the server is worse than the marginal
+	// difference between the two. Go's own default is already 1.2 as of 1.22 —
+	// this states it so a future default change cannot lower it, and so the
+	// setting is visible to a reader rather than inherited.
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 
 	// Load custom CA bundle if provided
 	if c.CACertificate != "" {

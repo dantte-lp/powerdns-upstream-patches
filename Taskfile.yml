@@ -197,6 +197,12 @@ tasks:
     cmds:
       - '{{.EXEC}} osv-scanner scan --recursive .'
 
+  semgrep:
+    desc: Semantic security scan (Go, security-audit, secrets rulesets)
+    cmds:
+      - semgrep --config=p/golang --config=p/security-audit --config=p/secrets
+          --metrics=off --error .
+
   lint:pins:
     desc: Verify every GitHub Action pin resolves upstream and none float
     cmds:
@@ -298,6 +304,7 @@ tasks:
       - task: test
       - task: lint
       - task: lint:pins
+      - task: semgrep
       - task: py
       - task: tf:fmt:check
       - task: docs:lint
