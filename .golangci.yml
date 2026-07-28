@@ -280,8 +280,10 @@ linters:
           - godox
           - nestif
           - funcorder
-      # Acceptance tests share one lab instance — parallel execution is unsafe.
-      - path: test/acceptance/
+      # Acceptance tests share one lab instance and a global zone namespace, so
+      # parallel execution is unsafe. They live beside the resource they cover,
+      # named *_acc_test.go and built with the `acceptance` tag.
+      - path: _acc_test\.go
         linters:
           - paralleltest
           - tparallel

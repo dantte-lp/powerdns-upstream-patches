@@ -121,8 +121,18 @@ func (r *zoneResource) Schema(
 				Validators: []validator.Set{MastersValidator()},
 			},
 			"soa_edit_api": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "SOA-EDIT-API metadata value applied to the zone.",
+				Optional: true,
+				// Computed because PowerDNS assigns this itself: a zone created
+				// without the argument comes back with "DEFAULT". Modelling it
+				// as Optional alone produces a permanent diff — the plan wants
+				// null, the server reports DEFAULT, and every plan is dirty.
+				// Verified against auth-5.1.3: POST /zones without soa_edit_api
+				// returns "soa_edit_api": "DEFAULT".
+				Computed:            true,
+				MarkdownDescription: "SOA-EDIT-API metadata value applied to the zone. PowerDNS defaults this to `DEFAULT`.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -219,6 +229,10 @@ func (r *zoneResource) Create(
 	}
 
 	plan.ID = types.StringValue(created.ID)
+	resp.Diagnostics.Append(applyZoneInfo(ctx, &plan, created)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -248,22 +262,9 @@ func (r *zoneResource) Read(
 		return
 	}
 
-	state.Name = types.StringValue(zoneInfo.Name)
-	state.Kind = types.StringValue(zoneInfo.Kind)
-	state.Account = types.StringValue(zoneInfo.Account)
-	state.SoaEditAPI = types.StringValue(zoneInfo.SoaEditAPI)
-	state.Catalog = optionalString(zoneInfo.Catalog)
-
-	// Masters are only meaningful for a Slave zone; for any other kind
-	// PowerDNS returns an empty list, and writing that into state would show as
-	// a permanent diff against a configuration that omits the attribute.
-	if strings.EqualFold(zoneInfo.Kind, kindSlave) {
-		masters, diags := types.SetValueFrom(ctx, types.StringType, zoneInfo.Masters)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.Masters = masters
+	resp.Diagnostics.Append(applyZoneInfo(ctx, &state, zoneInfo)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -307,6 +308,18 @@ func (r *zoneResource) Update(
 		return
 	}
 
+	// PUT /zones returns no body, so the server-assigned values are fetched
+	// rather than assumed unchanged.
+	updated, err := r.clients.PDNS.GetZone(ctx, plan.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to read the PowerDNS zone back after update", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(applyZoneInfo(ctx, &plan, updated)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -333,6 +346,51 @@ func (r *zoneResource) ImportState(
 	resp *resource.ImportStateResponse,
 ) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// applyZoneInfo copies the server's view of a zone onto the model. Create,
+// Read and Update all use it, so the three cannot drift — which they did in the
+// inherited resource, where Create wrote the plan and only Read consulted the
+// server.
+func applyZoneInfo(
+	ctx context.Context,
+	model *zoneModel,
+	zoneInfo powerdns.ZoneInfo,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	model.Name = types.StringValue(zoneInfo.Name)
+	model.Account = types.StringValue(zoneInfo.Account)
+
+	// PowerDNS title-cases the kind: a configured "native" is stored as
+	// "Native". Overwriting the configured spelling makes Terraform report an
+	// inconsistent result after apply, so the configured value is kept where
+	// the two differ only in case. Verified against auth-5.1.3.
+	if !strings.EqualFold(model.Kind.ValueString(), zoneInfo.Kind) {
+		model.Kind = types.StringValue(zoneInfo.Kind)
+	}
+	model.SoaEditAPI = types.StringValue(zoneInfo.SoaEditAPI)
+	model.Catalog = optionalString(zoneInfo.Catalog)
+
+	// Masters are only meaningful for a Slave zone. For any other kind
+	// PowerDNS returns an empty list, and writing that into state would show as
+	// a permanent diff against a configuration that omits the attribute.
+	if !strings.EqualFold(zoneInfo.Kind, kindSlave) {
+		return diags
+	}
+
+	configured, d := mastersFromSet(ctx, model.Masters)
+	diags.Append(d...)
+	if diags.HasError() {
+		return diags
+	}
+
+	masters, d := types.SetValueFrom(ctx, types.StringType,
+		preserveMasterSpelling(configured, zoneInfo.Masters))
+	diags.Append(d...)
+	model.Masters = masters
+
+	return diags
 }
 
 // mastersFromSet converts the schema set to the slice the client expects.

@@ -163,7 +163,9 @@ tasks:
     env:
       TF_ACC: '1'
     cmds:
-      - '{{.EXEC}} env TF_ACC=1 go test ./... -race -count=1 -timeout 120m -v'
+      # -tags acceptance, and scoped to internal/ — see the CI comment and
+      # plan.md S2-11 for why powerdns/ is excluded for now.
+      - '{{.EXEC}} env TF_ACC=1 go test -tags acceptance ./internal/... -race -count=1 -timeout 120m -v'
 
   # === Go quality ===
 

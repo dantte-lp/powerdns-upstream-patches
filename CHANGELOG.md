@@ -80,6 +80,11 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   preserved, including case-insensitive `kind` — a plan modifier now, where the
   SDKv2 resource used `DiffSuppressFunc`.
 
+- Acceptance tests for `powerdns_zone`, running against both lab backends:
+  create/read/import/destroy, idempotency asserted with
+  `plancheck.ExpectEmptyPlan`, the upstream #73 configuration verbatim, and
+  negative cases for both masters rules.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
@@ -121,6 +126,13 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   present in the dependency graph; `govulncheck` now reports none.
 
 ### Fixed
+
+- `powerdns_zone` no longer produces a permanent diff. Three server-side
+  normalisations were found by the acceptance suite and none by the unit tests:
+  PowerDNS assigns `soa_edit_api = "DEFAULT"` when the argument is omitted,
+  title-cases `kind` (`native` becomes `Native`), and compresses IPv6 zeros in
+  `masters` (`:0000:` becomes `:0:`). The resource now models the first as
+  computed and preserves the configured spelling for the other two.
 
 - IPv6 addresses are accepted in `powerdns_zone.masters`. The inherited
   implementation split on `:` and rejected anything with more than one colon,
