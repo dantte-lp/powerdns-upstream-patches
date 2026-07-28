@@ -210,6 +210,22 @@ jobs:
       - name: ty check
         run: uv run ty check scripts/
 
+  action-pins:
+    name: Verify Action pins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A fabricated SHA is syntactically valid and survives review; only
+      # resolving it upstream catches it. See
+      # docs/standards/verified-identifiers.md.
+      - name: check-action-pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/check-action-pins.sh
+
   commitlint:
     name: Commitlint (PR title)
     if: github.event_name == 'pull_request'

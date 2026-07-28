@@ -171,6 +171,11 @@ tasks:
     cmds:
       - '{{.EXEC}} osv-scanner scan --recursive .'
 
+  lint:pins:
+    desc: Verify every GitHub Action pin resolves upstream and none float
+    cmds:
+      - scripts/check-action-pins.sh
+
   gosec:
     desc: gosec only
     cmds:
@@ -255,6 +260,7 @@ tasks:
       - task: build
       - task: test
       - task: lint
+      - task: lint:pins
       - task: py
       - task: tf:fmt:check
       - task: docs:lint
