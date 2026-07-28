@@ -58,6 +58,10 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   release tags, module versions, digests, advisory ids and `file:line`
   citations.
 
+- Taskfile guards: every task that shells into the dev container now carries a
+  `preconditions` check that names the fix (`run: task up`) instead of failing
+  with a podman-compose stack trace; `testacc` additionally requires the lab.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
