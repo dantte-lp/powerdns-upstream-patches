@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/dantte-lp/terraform-provider-powerdns/internal/client"
+	"github.com/dantte-lp/terraform-provider-powerdns/internal/resources/zone"
 	"github.com/dantte-lp/terraform-provider-powerdns/powerdns"
 )
 
@@ -39,12 +41,6 @@ func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &powerdnsProvider{version: version}
 	}
-}
-
-// Clients is handed to every resource and data source through Configure.
-type Clients struct {
-	PDNS     *powerdns.PowerDNSClient
-	Recursor *powerdns.RecursorClient
 }
 
 // providerModel mirrors the schema below.
@@ -175,16 +171,19 @@ func (p *powerdnsProvider) Configure(
 		return
 	}
 
-	clients := &Clients{PDNS: pdnsClient, Recursor: recursorClient}
+	clients := &client.Bundle{PDNS: pdnsClient, Recursor: recursorClient}
 	resp.DataSourceData = clients
 	resp.ResourceData = clients
 }
 
-// Resources is empty until the first resource is ported. A type name may be
-// served by exactly one half of the mux, so a resource appears here in the same
-// commit that removes it from the SDKv2 provider.
+// Resources lists the ported resources. A type name may be served by exactly
+// one half of the mux, so a resource appears here in the same commit that
+// removes it from the SDKv2 provider; TestMuxServer_NoDuplicateTypeNames fails
+// if the two ever overlap.
 func (p *powerdnsProvider) Resources(_ context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{
+		zone.NewResource,
+	}
 }
 
 func (p *powerdnsProvider) DataSources(_ context.Context) []func() datasource.DataSource {

@@ -161,9 +161,9 @@ committing to it for ten.
 |---|---|---|---|---|
 | S2-01 | `main.go`: `tf5to6server.UpgradeServer` + `tf6muxserver` | DEV | S1-05 `[x]` | `[x]` |
 | S2-02 | Manifest declares protocol 6.0 (S-02) | DEV | S2-01 | `[x]` |
-| S2-03 | Layout: `internal/provider` established; `internal/client/pdns` follows with the first port | ARC + DEV | S2-01 | `[~]` |
-| S2-04 | Port `powerdns_zone` to the framework | DEV | S2-03 | `[ ]` |
-| S2-05 | Fix D-01 and D-02 in the ported resource — `net.SplitHostPort`, validator on both paths | DEV | S2-04 | `[ ]` |
+| S2-03 | Layout: `internal/provider`, `internal/client`, `internal/resources/<area>` | ARC + DEV | S2-01 | `[x]` |
+| S2-04 | Port `powerdns_zone` to the framework | DEV | S2-03 | `[x]` |
+| S2-05 | Fix D-01 and D-02 in the ported resource — `net.SplitHostPort`, validator on both paths | DEV | S2-04 | `[x]` |
 | S2-06 | State-continuity acceptance test: apply on SDKv2, refresh on framework | QA | S2-04 | `[ ]` |
 | S2-07 | Acceptance on both backends | QA | S2-06 | `[ ]` |
 | S2-08 | Registry docs regenerated | DEV | S2-04 | `[ ]` |
@@ -173,6 +173,12 @@ committing to it for ten.
 `powerdns_zone` first because it is the resource every other one depends on and
 the one carrying two open defects. If the mechanism is wrong, it is cheapest to
 learn here.
+
+The zone port surfaced an ordering constraint worth recording: `internal/client`
+exists because a resource needs the client bundle and the provider needs the
+resource, so holding the bundle in `internal/provider` is an import cycle. It
+was cheaper to learn this on the first port than on the fifth — which is the
+argument ADR 0003 makes for doing one resource before committing to ten.
 
 **S2-10** added semgrep to the gate on the operator's suggestion. It is not a
 second golangci-lint: it reasons across expressions and it scans `powerdns/`,
