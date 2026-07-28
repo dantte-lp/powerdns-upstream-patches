@@ -12,10 +12,10 @@ Quote the status code and body, not a summary of them.
 
 ## Checklist
 
-- [ ] `make all` is green; output quoted below if this changes behaviour
-- [ ] Resource changes: `make verify` green on **every backend the resource supports**
+- [ ] `task all` is green; output quoted below if this changes behaviour
+- [ ] Resource changes: `task verify` green on **every backend the resource supports**
 - [ ] `CHANGELOG.md` `[Unreleased]` updated
-- [ ] Registry docs regenerated (`make docs`) if the schema changed
+- [ ] Registry docs regenerated (`task docs`) if the schema changed
 - [ ] New PowerDNS behaviour claims cited against the sources and the lab
 - [ ] Title is a Conventional Commit subject
 - [ ] No AI attribution anywhere in the diff, commits or this description

@@ -77,7 +77,7 @@ was rejected there.
   branches; squash-merge; no long-running divergent forks.
 - **The per-resource Definition of Done is the unit of progress** — see
   [`standards/terraform-provider-best-practices.md`](standards/terraform-provider-best-practices.md) §6.
-- **Quality gates** (`make all`, `make verify`) are the automated part of the
+- **Quality gates** (`task all`, `task verify`) are the automated part of the
   gate. A resource is not done until they are green with lab evidence quoted.
 
 ## Evidence discipline

@@ -1,0 +1,288 @@
+# Taskfile — https://taskfile.dev
+#
+# Replaces the Makefile. Task is the entry point for every command in this
+# repository; see docs/adr/0007-taskfile-over-make.md for why.
+#
+#   task            list the tasks
+#   task up         start the dev container
+#   task all        the pre-PR gate
+#   task verify     the full gate, including the lab
+#
+# Almost everything runs inside the Podman dev container. The exceptions are
+# the lab tasks, which drive Podman on the host and are marked as such.
+
+version: '3'
+
+vars:
+  COMPOSE_DEV: deployments/compose/compose.dev.yml
+  COMPOSE_LAB: deployments/compose/compose.lab.yml
+  DC: podman-compose -f deployments/compose/compose.dev.yml
+  EXEC: podman-compose -f deployments/compose/compose.dev.yml exec -T dev
+  NAMESPACE: dantte-lp
+  TYPE: powerdns
+  BINARY: terraform-provider-powerdns
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || cat VERSION 2>/dev/null || echo dev
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo unknown
+  BUILD_DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
+  LDFLAGS: >-
+    -s -w
+    -X main.version={{.VERSION}}
+    -X main.commit={{.GIT_COMMIT}}
+    -X main.date={{.BUILD_DATE}}
+
+env:
+  # Two authoritative endpoints, not one: views and networks are unimplemented
+  # by gpgsql, so a single-backend run cannot cover this provider (ADR 0005).
+  PDNS_SERVER_URL: http://127.0.0.1:18081
+  PDNS_SERVER_URL_LMDB: http://127.0.0.1:18091
+  PDNS_RECURSOR_SERVER_URL: http://127.0.0.1:18082
+  PDNS_API_KEY: labapikey
+
+tasks:
+  default:
+    desc: List the available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  # === Dev container lifecycle ===
+
+  up:
+    desc: Build and start the dev container
+    cmds:
+      - '{{.DC}} up -d --build'
+
+  down:
+    desc: Stop the dev container
+    cmds:
+      - '{{.DC}} down'
+
+  restart:
+    desc: Restart the dev container
+    cmds:
+      - task: down
+      - task: up
+
+  logs:
+    desc: Follow the dev container log
+    cmds:
+      - '{{.DC}} logs -f dev'
+
+  shell:
+    desc: Open a shell in the dev container
+    interactive: true
+    cmds:
+      - '{{.DC}} exec dev bash'
+
+  # === Lab fixture (runs on the host, drives Podman) ===
+
+  lab:up:
+    desc: Start the acceptance lab and wait for every API
+    cmds:
+      - python3 scripts/automation/lab.py up
+
+  lab:down:
+    desc: Remove the acceptance lab, including volumes
+    cmds:
+      - python3 scripts/automation/lab.py down
+
+  lab:status:
+    desc: Report lab container state and reported versions
+    cmds:
+      - python3 scripts/automation/lab.py status
+
+  lab:verify:
+    desc: Assert the lab matches the pinned PowerDNS reference points
+    cmds:
+      - python3 scripts/automation/lab.py verify
+
+  # === Build ===
+
+  build:
+    desc: Compile the provider
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - bin/{{.BINARY}}
+    cmds:
+      - '{{.EXEC}} go build -ldflags="{{.LDFLAGS}}" -o bin/{{.BINARY}} .'
+
+  install:
+    desc: Install the provider for manual dev_overrides testing
+    cmds:
+      - '{{.EXEC}} go install -ldflags="{{.LDFLAGS}}" .'
+
+  # === Test ===
+
+  test:
+    desc: Unit tests, race detector on
+    cmds:
+      - '{{.EXEC}} go test ./... -race -count=1'
+
+  test:v:
+    desc: Unit tests, verbose
+    cmds:
+      - '{{.EXEC}} go test ./... -race -count=1 -v'
+
+  test:run:
+    desc: Run one test — task test:run RUN=TestX PKG=./internal/x
+    requires:
+      vars: [RUN]
+    cmds:
+      - '{{.EXEC}} go test -run "{{.RUN}}" {{.PKG | default "./..."}} -race -count=1 -v'
+
+  testacc:
+    desc: Acceptance tests against the lab
+    deps: [lab:verify]
+    env:
+      TF_ACC: '1'
+    cmds:
+      - '{{.EXEC}} env TF_ACC=1 go test ./... -race -count=1 -timeout 120m -v'
+
+  # === Go quality ===
+
+  lint:
+    desc: golangci-lint v2
+    cmds:
+      - '{{.EXEC}} golangci-lint run ./...'
+
+  lint:fix:
+    desc: golangci-lint with --fix
+    cmds:
+      - '{{.EXEC}} golangci-lint run --fix ./...'
+
+  fmt:
+    desc: Apply the Go formatters
+    cmds:
+      - '{{.EXEC}} golangci-lint fmt ./...'
+
+  vulncheck:
+    desc: govulncheck
+    cmds:
+      - '{{.EXEC}} govulncheck ./...'
+
+  osv-scan:
+    desc: osv-scanner
+    cmds:
+      - '{{.EXEC}} osv-scanner scan --recursive .'
+
+  gosec:
+    desc: gosec only
+    cmds:
+      - '{{.EXEC}} golangci-lint run --enable-only gosec ./...'
+
+  # === Python quality ===
+  # uv manages the environment, ruff lints and formats, ty type-checks.
+  # Configuration in pyproject.toml; rules in docs/standards/python-tooling.md.
+
+  py:lint:
+    desc: ruff check and format check
+    cmds:
+      - '{{.EXEC}} uv run ruff check scripts/'
+      - '{{.EXEC}} uv run ruff format --check scripts/'
+
+  py:fmt:
+    desc: ruff format and autofix
+    cmds:
+      - '{{.EXEC}} uv run ruff format scripts/'
+      - '{{.EXEC}} uv run ruff check --fix scripts/'
+
+  py:typecheck:
+    desc: ty type check (pre-1.0 — a ty-only failure is reviewed, not obeyed)
+    cmds:
+      - '{{.EXEC}} uv run ty check scripts/'
+
+  py:
+    desc: The Python gate
+    cmds:
+      - task: py:lint
+      - task: py:typecheck
+
+  # === Terraform ===
+
+  tf:fmt:
+    desc: terraform fmt on examples
+    cmds:
+      - '{{.EXEC}} terraform fmt -recursive examples'
+
+  tf:fmt:check:
+    desc: terraform fmt -check on examples
+    cmds:
+      - '{{.EXEC}} terraform fmt -check -recursive examples'
+
+  # === Docs ===
+
+  docs:
+    desc: Generate registry documentation from the schema
+    cmds:
+      - '{{.EXEC}} tfplugindocs generate --provider-name {{.TYPE}}'
+
+  docs:check:
+    desc: Validate the registry documentation
+    cmds:
+      - '{{.EXEC}} tfplugindocs validate --provider-name {{.TYPE}}'
+
+  docs:lint:
+    desc: markdownlint, yamllint, cspell and the registry docs check
+    cmds:
+      - '{{.EXEC}} markdownlint-cli2 "**/*.md" "#node_modules" "#bin" "#dist"'
+      - '{{.EXEC}} uv run yamllint -c .yamllint.yaml .'
+      - '{{.EXEC}} cspell --no-progress --no-summary --config .cspell.json "**/*.md" "**/*.go"'
+      - task: docs:check
+
+  # === Dependencies ===
+
+  tidy:
+    desc: go mod tidy
+    cmds:
+      - '{{.EXEC}} go mod tidy'
+
+  download:
+    desc: go mod download
+    cmds:
+      - '{{.EXEC}} go mod download'
+
+  # === Aggregate gates ===
+
+  all:
+    desc: Pre-PR gate — everything that does not need the lab
+    cmds:
+      - task: build
+      - task: test
+      - task: lint
+      - task: py
+      - task: tf:fmt:check
+      - task: docs:lint
+      - task: vulncheck
+
+  verify:
+    desc: Full gate — `all` plus lab acceptance on both backends
+    cmds:
+      - task: all
+      - task: lab:verify
+      - task: testacc
+      - cmd: echo 'verify — all gates green'
+
+  # === Misc ===
+
+  clean:
+    desc: Remove build output
+    cmds:
+      - rm -rf bin/ dist/ coverage.out coverage.html
+
+  versions:
+    desc: Report the pinned toolchain versions
+    cmds:
+      - '{{.EXEC}} go version'
+      - '{{.EXEC}} terraform version'
+      - '{{.EXEC}} tofu version'
+      - '{{.EXEC}} terragrunt --version'
+      - '{{.EXEC}} golangci-lint version --short'
+      - '{{.EXEC}} uv --version'
+      - '{{.EXEC}} uv run ruff --version'
+      - '{{.EXEC}} uv run ty --version'

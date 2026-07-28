@@ -92,13 +92,17 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - uses: go-task/setup-task@01a4adf9db2d14c1de7a560f09170b6e0df736aa # v2.1.0
+        with:
+          version: 3.52.0
+
       - name: Start lab
         run: |
           pip install --user podman-compose podman
-          make lab-up
+          task lab:up
 
       - name: Verify lab matches pinned reference points
-        run: make lab-verify
+        run: task lab:verify
 
       - name: Acceptance tests
         env:
@@ -111,7 +115,7 @@ jobs:
 
       - name: Lab diagnostics on failure
         if: failure()
-        run: make lab-status
+        run: task lab:status
 
   lint-go:
     name: Lint (Go · golangci-lint v2)

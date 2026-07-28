@@ -9,8 +9,8 @@
 #
 # Everything the daily loop needs is baked in: Go toolchain, golangci-lint v2,
 # govulncheck, osv-scanner, gotestsum, Terraform + OpenTofu + Terragrunt,
-# tfplugindocs, goreleaser, the uv/ruff/ty Python toolchain, and the
-# documentation linters. The host needs only Podman and podman-compose.
+# tfplugindocs, goreleaser, the uv/ruff/ty Python toolchain, Task, and the
+# documentation linters. The host needs only Podman, podman-compose and Task.
 
 ARG GO_VERSION=1.26
 ARG GOLANGCI_LINT_VERSION=v2.12.2
@@ -26,6 +26,7 @@ ARG PODMAN_PY_VERSION=5.7.0
 ARG UV_VERSION=0.11.33
 ARG RUFF_VERSION=0.16.0
 ARG TY_VERSION=0.0.64
+ARG TASK_VERSION=v3.52.0
 
 FROM golang:1.26-trixie AS dev
 
@@ -42,6 +43,7 @@ ARG PODMAN_PY_VERSION
 ARG UV_VERSION
 ARG RUFF_VERSION
 ARG TY_VERSION
+ARG TASK_VERSION
 
 # TF_ACC is unset by default: acceptance tests run only when the caller opts in
 # with TF_ACC=1 and points PDNS_SERVER_URL at the lab. See AGENTS.md.
@@ -120,7 +122,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
  && go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${TFPLUGINDOCS_VERSION} \
  && go install github.com/goreleaser/goreleaser/v2@${GORELEASER_VERSION} \
  && go install golang.org/x/tools/gopls@latest \
- && go install gotest.tools/gotestsum@latest
+ && go install gotest.tools/gotestsum@latest \
+ && go install github.com/go-task/task/v3/cmd/task@${TASK_VERSION}
 
 # npm-based documentation linters.
 RUN --mount=type=cache,target=/root/.npm \
