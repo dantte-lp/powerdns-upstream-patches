@@ -30,10 +30,18 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   a recursor with `api_dir` set, driven through podman-py
   (`scripts/automation/lab.py`). Views and networks are unimplemented by the
   PostgreSQL backend, so a single-backend fixture cannot cover this provider.
-- `golangci-lint` v2 configuration with an explicit allowlist of 82 linters, 3 formatters, and
-  severity tiers.
-- CI workflow with an acceptance matrix across both backends, all GitHub
-  Actions pinned by commit SHA.
+- `golangci-lint` v2 configuration with an explicit allowlist of 82 linters,
+  3 formatters, and severity tiers.
+- Python toolchain for the automation scripts: `uv` 0.11.33 as environment
+  manager, `ruff` 0.16.0 as linter and formatter, `ty` 0.0.64 as type checker,
+  configured in `pyproject.toml` and gated by `make py` as part of `make all`.
+- `docs/standards/python-tooling.md` recording the Python rules, including why
+  the ruff selection is an allowlist rather than `ALL` and how a pre-1.0 type
+  checker is treated in a merge gate.
+- `docs/plan.md` — the live delivery plan. Task status changes in the same
+  commit as the work; phase and sprint closures are recorded here.
+- CI workflow with an acceptance matrix across both backends and a Python
+  lint job; all GitHub Actions pinned by commit SHA.
 
 ## [0.1.0] — 2026-07-28
 

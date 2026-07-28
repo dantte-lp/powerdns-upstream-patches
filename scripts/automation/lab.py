@@ -38,6 +38,7 @@ except ImportError:  # pragma: no cover - the dev image always has it
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMPOSE_FILE = REPO_ROOT / "deployments" / "compose" / "compose.lab.yml"
 API_KEY = "labapikey"
+HTTP_OK = 200
 
 # Pinned reference points. When one of these moves, the claims that depend on
 # it are re-verified rather than assumed still correct — see
@@ -96,7 +97,7 @@ def api_get(url: str, timeout: float = 3.0) -> list | dict | None:
     request = urllib.request.Request(url, headers={"X-API-Key": API_KEY})  # noqa: S310
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
-            if response.status != 200:
+            if response.status != HTTP_OK:
                 return None
             return json.loads(response.read())
     # OSError covers URLError and the bare ConnectionResetError a server raises
@@ -147,8 +148,15 @@ def container_states() -> dict[str, str]:
         )
 
     result = subprocess.run(
-        ["podman", "ps", "-a", "--filter", "name=pdns-lab-",
-         "--format", "{{.Names}}\t{{.State}}"],
+        [
+            "podman",
+            "ps",
+            "-a",
+            "--filter",
+            "name=pdns-lab-",
+            "--format",
+            "{{.Names}}\t{{.State}}",
+        ],
         capture_output=True,
         text=True,
         check=True,
@@ -163,6 +171,7 @@ def container_states() -> dict[str, str]:
 
 
 def cmd_up() -> int:
+    """Start the fixture and wait until every API answers."""
     compose("up", "-d")
     print("waiting for APIs")
     if not wait_for_apis():
@@ -177,11 +186,13 @@ def cmd_up() -> int:
 
 
 def cmd_down() -> int:
+    """Remove the fixture, including its volumes."""
     compose("down", "-v")
     return 0
 
 
 def cmd_status() -> int:
+    """Report container state and the version each API reports."""
     states = container_states()
     if not states:
         print("lab is not running")
@@ -231,6 +242,7 @@ def cmd_verify() -> int:
 
 
 def main() -> int:
+    """Dispatch the requested subcommand."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("up", "down", "status", "verify"))
     args = parser.parse_args()

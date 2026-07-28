@@ -9,8 +9,8 @@
 #
 # Everything the daily loop needs is baked in: Go toolchain, golangci-lint v2,
 # govulncheck, osv-scanner, gotestsum, Terraform + OpenTofu + Terragrunt,
-# tfplugindocs, goreleaser, and the documentation linters. The host needs only
-# Podman and podman-compose.
+# tfplugindocs, goreleaser, the uv/ruff/ty Python toolchain, and the
+# documentation linters. The host needs only Podman and podman-compose.
 
 ARG GO_VERSION=1.26
 ARG GOLANGCI_LINT_VERSION=v2.12.2
@@ -23,6 +23,9 @@ ARG OPENTOFU_VERSION=1.12.5
 ARG TERRAGRUNT_VERSION=1.1.1
 ARG NODE_MAJOR=22
 ARG PODMAN_PY_VERSION=5.7.0
+ARG UV_VERSION=0.11.33
+ARG RUFF_VERSION=0.16.0
+ARG TY_VERSION=0.0.64
 
 FROM golang:1.26-trixie AS dev
 
@@ -36,6 +39,9 @@ ARG OPENTOFU_VERSION
 ARG TERRAGRUNT_VERSION
 ARG NODE_MAJOR
 ARG PODMAN_PY_VERSION
+ARG UV_VERSION
+ARG RUFF_VERSION
+ARG TY_VERSION
 
 # TF_ACC is unset by default: acceptance tests run only when the caller opts in
 # with TF_ACC=1 and points PDNS_SERVER_URL at the lab. See AGENTS.md.
@@ -124,12 +130,27 @@ RUN --mount=type=cache,target=/root/.npm \
         @commitlint/cli@latest \
         @commitlint/config-conventional@latest
 
-# Python tooling: yamllint, junit2html, and podman-py for the lab automation.
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --break-system-packages --no-cache-dir \
-        yamllint \
-        junit2html \
-        "podman==${PODMAN_PY_VERSION}"
+# Python tooling. uv is the installer and environment manager; ruff and ty are
+# the Python quality gates, matching what golangci-lint is for Go. ty is
+# pre-1.0 and pinned exactly for that reason.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    curl -fsSL https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
+ && mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/ \
+ && uv --version
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv tool install --python 3.12 "ruff==${RUFF_VERSION}" \
+ && uv tool install --python 3.12 "ty==${TY_VERSION}" \
+ && uv tool install --python 3.12 yamllint \
+ && uv tool install --python 3.12 junit2html \
+ && uv tool update-shell || true
+
+ENV PATH="/root/.local/bin:${PATH}"
+
+# podman-py is a runtime dependency of the lab automation, not a tool, so it
+# goes into the interpreter the scripts run under.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --break-system-packages "podman==${PODMAN_PY_VERSION}"
 
 WORKDIR /app
 VOLUME /app

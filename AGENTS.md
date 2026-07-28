@@ -44,7 +44,9 @@ Inherited state at fork time, and the reason the work exists:
    specification is *not* sufficient — it diverges from the implementation in
    both directions (capability map `CM-03` §2.1).
 4. **Verify before "done".** Run the gate and quote its output. Never claim
-   green without having run it.
+   green without having run it. Update the task's status in
+   [`docs/plan.md`](docs/plan.md) in the same commit as the work — a plan
+   updated afterwards is a report, not a control.
 5. **No secrets in the repo.** API keys come from the environment at run time.
    The lab key `labapikey` is a deliberately public test value and is never
    reused anywhere else.
@@ -64,7 +66,9 @@ Inherited state at fork time, and the reason the work exists:
 | Provider design + Definition of Done | [`docs/standards/terraform-provider-best-practices.md`](docs/standards/terraform-provider-best-practices.md) |
 | Terragrunt integration | [`docs/standards/terragrunt-integration.md`](docs/standards/terragrunt-integration.md) |
 | PowerDNS API discipline | [`docs/standards/powerdns-api-discipline.md`](docs/standards/powerdns-api-discipline.md) |
+| Python tooling — uv, ruff, ty | [`docs/standards/python-tooling.md`](docs/standards/python-tooling.md) |
 | Methodology — roles, gates, sprints | [`docs/methodology.md`](docs/methodology.md) |
+| **Delivery plan — live task status** | [`docs/plan.md`](docs/plan.md) |
 
 Architectural decisions are immutable numbered records under
 [`docs/adr/`](docs/adr/). The fork-time audit is
@@ -75,6 +79,7 @@ Architectural decisions are immutable numbered records under
 | Tool | Why |
 |---|---|
 | **`gopls` LSP** | Navigate, rename, find references, read live diagnostics — instead of grepping. |
+| **`uv` / `ruff` / `ty`** | The Python gate for everything under `scripts/`. `make py`. |
 | **`context7` MCP** | Current docs for the Plugin Framework, Terraform, any library, before writing code against it. Do not trust training-data recall for signatures. |
 | **`PowerDNS/pdns` clone** | The authority on API behaviour. `../pdns-upstream`, tags `auth-5.1.3`, `rec-5.4.4`, `dnsdist-2.1.0`. |
 | **The lab** | `make lab-up` — Authoritative on PostgreSQL, Authoritative on LMDB, Recursor with `api_dir`. |
@@ -137,6 +142,7 @@ A pull request does not merge with an `error`-tier finding.
 | Unit + race | `make test` |
 | Acceptance against the lab | `make testacc` |
 | golangci-lint v2 | `make lint` |
+| Python — ruff + ty | `make py` |
 | Vulnerabilities | `make vulncheck` · `make osv-scan` |
 | Terraform fmt | `make tffmt-check` |
 | Registry docs | `make docs-check` |

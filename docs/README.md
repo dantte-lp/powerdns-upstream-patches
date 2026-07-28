@@ -7,6 +7,7 @@ then the standards, then the evidence.
 |---|---|
 | [`../AGENTS.md`](../AGENTS.md) | **Start here.** Golden rules, workflow, gates. |
 | [`methodology.md`](methodology.md) | Delivery method, roles, phase gates, sprints. |
+| [`plan.md`](plan.md) | **Live delivery plan.** Task status, updated with the work. |
 | [`development.md`](development.md) | Dev container, the lab, the daily loop. |
 | [`testing.md`](testing.md) | Test layers and the two-backend matrix. |
 | [`release.md`](release.md) | Cutting a release; contributing upstream. |
@@ -25,6 +26,7 @@ Normative. Read the standard before changing the thing it governs.
 | [`standards/terraform-provider-best-practices.md`](standards/terraform-provider-best-practices.md) | Provider design and Definition of Done. |
 | [`standards/terragrunt-integration.md`](standards/terragrunt-integration.md) | How consumers orchestrate this provider. |
 | [`standards/powerdns-api-discipline.md`](standards/powerdns-api-discipline.md) | How to establish a fact about PowerDNS. |
+| [`standards/python-tooling.md`](standards/python-tooling.md) | uv, ruff, ty for the automation scripts. |
 
 ## Decisions
 

@@ -34,6 +34,7 @@ LAB_ENV := \
         build install \
         test test-v test-run testacc \
         lint lint-fix lint-md lint-yaml lint-spell lint-docs tffmt tffmt-check \
+        lint-py fmt-py typecheck-py py \
         vulncheck osv-scan gosec \
         docs docs-check \
         tidy download \
@@ -47,6 +48,7 @@ help:
 	@echo "Build:      build install"
 	@echo "Test:       test test-v test-run testacc"
 	@echo "Quality:    lint lint-fix vulncheck osv-scan gosec"
+	@echo "Python:     py (lint-py fmt-py typecheck-py)"
 	@echo "Docs:       docs docs-check lint-md lint-yaml lint-spell lint-docs"
 	@echo "Terraform:  tffmt tffmt-check"
 	@echo "Deps:       tidy download"
@@ -130,6 +132,26 @@ osv-scan:
 gosec:
 	$(EXEC) golangci-lint run --enable-only gosec ./...
 
+# === Python (automation scripts) ===
+# uv manages the environment; ruff is the linter and formatter; ty is the type
+# checker. Same philosophy as the Go gate: explicit allowlist, strict by
+# default. Configuration lives in pyproject.toml.
+
+lint-py:
+	$(EXEC) uv run ruff check scripts/
+	$(EXEC) uv run ruff format --check scripts/
+
+fmt-py:
+	$(EXEC) uv run ruff format scripts/
+	$(EXEC) uv run ruff check --fix scripts/
+
+# ty is pre-1.0. It runs in the gate because its findings have been accurate
+# here, but a ty-only failure is reviewed rather than trusted blindly.
+typecheck-py:
+	$(EXEC) uv run ty check scripts/
+
+py: lint-py typecheck-py
+
 # === Terraform formatting (examples) ===
 
 tffmt:
@@ -168,7 +190,7 @@ download:
 # === Aggregate gates ===
 
 # Pre-PR gate: everything that does not need the lab.
-all: build test lint tffmt-check lint-docs vulncheck
+all: build test lint py tffmt-check lint-docs vulncheck
 
 # Full gate: `all` plus lab acceptance on both backends.
 verify: all lab-verify testacc
@@ -188,3 +210,6 @@ versions:
 	@echo "=== Terragrunt ==="    && $(EXEC) terragrunt --version
 	@echo "=== golangci-lint ===" && $(EXEC) golangci-lint version --short
 	@echo "=== tfplugindocs ==="  && $(EXEC) tfplugindocs --version 2>/dev/null || echo installed
+	@echo "=== uv ==="            && $(EXEC) uv --version
+	@echo "=== ruff ==="          && $(EXEC) uv run ruff --version
+	@echo "=== ty ==="            && $(EXEC) uv run ty --version
