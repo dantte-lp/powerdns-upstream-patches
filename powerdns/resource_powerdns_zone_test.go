@@ -323,7 +323,7 @@ func TestAccPDNSZoneSlaveWithMasters(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		//CheckDestroy: testAccCheckPDNSZoneDestroy,
+		// CheckDestroy: testAccCheckPDNSZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testPDNSZoneConfigSlaveWithMasters,
@@ -350,7 +350,7 @@ func TestAccPDNSZoneSlaveWithMastersWithPort(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		//CheckDestroy: testAccCheckPDNSZoneDestroy,
+		// CheckDestroy: testAccCheckPDNSZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testPDNSZoneConfigSlaveWithMastersWithPort,
@@ -372,7 +372,6 @@ func TestAccPDNSZoneSlaveWithMastersWithPort(t *testing.T) {
 }
 
 func TestAccPDNSZoneSlaveWithMastersWithInvalidPort(t *testing.T) {
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -384,8 +383,8 @@ func TestAccPDNSZoneSlaveWithMastersWithInvalidPort(t *testing.T) {
 		},
 	})
 }
-func TestAccPDNSZoneSlaveWithInvalidMasters(t *testing.T) {
 
+func TestAccPDNSZoneSlaveWithInvalidMasters(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -399,7 +398,6 @@ func TestAccPDNSZoneSlaveWithInvalidMasters(t *testing.T) {
 }
 
 func TestAccPDNSZoneMasterWithMasters(t *testing.T) {
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

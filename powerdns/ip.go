@@ -330,5 +330,4 @@ func GetReverseZoneName(cidr string) (string, error) {
 	}
 	zone := strings.Join(zoneParts, ".") + ".ip6.arpa."
 	return zone, nil
-
 }

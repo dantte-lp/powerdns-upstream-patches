@@ -43,3 +43,4 @@ coverage.out
 coverage.html
 __pycache__/
 *.pyc
+vendor/
