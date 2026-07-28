@@ -34,7 +34,7 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   3 formatters, and severity tiers.
 - Python toolchain for the automation scripts: `uv` 0.11.33 as environment
   manager, `ruff` 0.16.0 as linter and formatter, `ty` 0.0.64 as type checker,
-  configured in `pyproject.toml` and gated by `make py` as part of `make all`.
+  configured in `pyproject.toml` and gated by `task py` as part of `task all`.
 - `docs/standards/python-tooling.md` recording the Python rules, including why
   the ruff selection is an allowlist rather than `ALL` and how a pre-1.0 type
   checker is treated in a merge gate.
@@ -42,6 +42,11 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   commit as the work; phase and sprint closures are recorded here.
 - CI workflow with an acceptance matrix across both backends and a Python
   lint job; all GitHub Actions pinned by commit SHA.
+- Task ([taskfile.dev](https://taskfile.dev)) v3.52.0 replaces `Makefile` as
+  the command interface, with namespaced tasks (`lab:up`, `py:typecheck`,
+  `tf:fmt:check`) and real incremental builds through `sources`/`generates`.
+  Rationale in [ADR 0007](docs/adr/0007-taskfile-over-make.md); the immediate
+  prompt was the `GNUmakefile` shadowing incident. `task --list` is the index.
 
 ### Changed
 
@@ -58,7 +63,8 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   vendoring was there for.
 - `GNUmakefile`, superseded by `Makefile`. Both were present after the previous
   change, and GNU make resolves `GNUmakefile` first — so every target added
-  then was unreachable until this removal.
+  then was unreachable until this removal. `Makefile` itself was subsequently
+  replaced by `Taskfile.yml`; see ADR 0007.
 - `.github/workflows/check.yml`, superseded by `ci.yml`. It pinned Go 1.26.1 in
   four places, which is how a toolchain bump would have silently failed to take
   effect.

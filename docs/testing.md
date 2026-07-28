@@ -25,8 +25,8 @@ No network. Cover schema validation, plan modifiers, and request and response
 marshalling.
 
 ```sh
-make test          # -race -count=1
-make test-run RUN=TestZone_ValidateMasters PKG=./internal/resources/zone
+task test          # -race -count=1
+task test:run RUN=TestZone_ValidateMasters PKG=./internal/resources/zone
 ```
 
 `t.Parallel()` is mandatory here and enforced by `paralleltest`.
@@ -37,9 +37,9 @@ Real plan, apply, refresh and destroy through `terraform-plugin-testing`
 against the lab.
 
 ```sh
-make lab-up
-make lab-verify    # assert the fixture matches the pinned reference points
-make testacc
+task lab:up
+task lab:verify    # assert the fixture matches the pinned reference points
+task testacc
 ```
 
 Requirements per resource:

@@ -68,7 +68,7 @@ inherited code (`AUDIT-01`).
 | Imports | `gofumpt` order; `goimports.local-prefixes` set to the module path. |
 | Test names | `Test<Subject>_<Behaviour>`; acceptance `TestAcc<Resource>_<Case>`. |
 | Test parallelism | `t.Parallel()` mandatory in unit tests; forbidden in acceptance tests that share a lab instance. Enforced by `paralleltest` with an exclusion for `test/acceptance/`. |
-| Race detector | `-race` always, in `make test` and in CI. |
+| Race detector | `-race` always, in `task test` and in CI. |
 | Build tags | `//go:build acceptance` for lab-dependent tests. |
 | Vulnerability gate | `govulncheck` and `osv-scanner`; an allow-listed advisory needs a documented reason. |
 

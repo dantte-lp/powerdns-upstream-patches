@@ -14,7 +14,7 @@
 # is invisible to a read-only check.
 #
 # Run with: podman-compose -f deployments/compose/compose.lab.yml up -d
-# Or:       make lab-up
+# Or:       task lab:up
 
 name: terraform-provider-powerdns-lab
 

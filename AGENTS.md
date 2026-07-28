@@ -30,7 +30,7 @@ Inherited state at fork time, and the reason the work exists:
 
 ## Golden rules
 
-1. **Use the dev container.** No host toolchain. `make up && make shell`.
+1. **Use the dev container.** No host toolchain. `task up && task shell`.
    Go, golangci-lint, Terraform, OpenTofu, Terragrunt, tfplugindocs and
    goreleaser are baked into `golang:1.26-trixie`. See
    [`docs/development.md`](docs/development.md).
@@ -39,7 +39,7 @@ Inherited state at fork time, and the reason the work exists:
    Dependabot or a `build(deps)` commit.
 3. **Evidence before facts.** No claim about PowerDNS behaviour goes in without
    corroboration from the **`PowerDNS/pdns` sources** and a **live round-trip
-   against the lab** (`make lab-up`). Cite the file:line or the HTTP status and
+   against the lab** (`task lab:up`). Cite the file:line or the HTTP status and
    body in the package comment or the commit body. The upstream OpenAPI
    specification is *not* sufficient — it diverges from the implementation in
    both directions (capability map `CM-03` §2.1).
@@ -79,10 +79,10 @@ Architectural decisions are immutable numbered records under
 | Tool | Why |
 |---|---|
 | **`gopls` LSP** | Navigate, rename, find references, read live diagnostics — instead of grepping. |
-| **`uv` / `ruff` / `ty`** | The Python gate for everything under `scripts/`. `make py`. |
+| **`uv` / `ruff` / `ty`** | The Python gate for everything under `scripts/`. `task py`. |
 | **`context7` MCP** | Current docs for the Plugin Framework, Terraform, any library, before writing code against it. Do not trust training-data recall for signatures. |
 | **`PowerDNS/pdns` clone** | The authority on API behaviour. `../pdns-upstream`, tags `auth-5.1.3`, `rec-5.4.4`, `dnsdist-2.1.0`. |
-| **The lab** | `make lab-up` — Authoritative on PostgreSQL, Authoritative on LMDB, Recursor with `api_dir`. |
+| **The lab** | `task lab:up` — Authoritative on PostgreSQL, Authoritative on LMDB, Recursor with `api_dir`. |
 
 ## The lab
 
@@ -96,12 +96,12 @@ authoritative instances are mandatory, not redundancy:
 | `http://127.0.0.1:18082/api/v1` | recursor, `api_dir` set | without `api_dir` every recursor write returns 422 |
 
 ```bash
-make lab-up
+task lab:up
 export PDNS_SERVER_URL=http://127.0.0.1:18081
 export PDNS_RECURSOR_SERVER_URL=http://127.0.0.1:18082
 export PDNS_API_KEY=labapikey
 export TF_ACC=1
-make testacc
+task testacc
 ```
 
 Namespace all test objects `tf-acc-<RUN_ID>` and leave zero residue in
@@ -114,13 +114,13 @@ isolated worktree and merges by pull request.
 
 1. `scripts/worktree.sh new <type>/<scope>/<name>` — creates a worktree under
    `../.worktrees/<branch>` cut from `fork/main`.
-2. Develop in the container: `make up && make shell`. Consult `gopls` and
+2. Develop in the container: `task up && task shell`. Consult `gopls` and
    `context7`; check PowerDNS behaviour against the sources and the lab.
-3. Before pushing: `make all`. Resource-touching changes also need
-   `make verify` (lab acceptance); quote the `N/N acceptance tests pass` line
+3. Before pushing: `task all`. Resource-touching changes also need
+   `task verify` (lab acceptance); quote the `N/N acceptance tests pass` line
    in the commit body.
 4. Update `CHANGELOG.md` under `[Unreleased]`.
-5. Regenerate registry docs with `make docs` if the schema changed.
+5. Regenerate registry docs with `task docs` if the schema changed.
 6. Commit per Conventional Commits; push; open a pull request whose title is a
    Conventional Commit subject. Squash-merge after review and green checks.
 7. `scripts/worktree.sh rm <branch>` when done.
@@ -138,17 +138,17 @@ A pull request does not merge with an `error`-tier finding.
 
 | Gate | Command |
 |---|---|
-| Build | `make build` |
-| Unit + race | `make test` |
-| Acceptance against the lab | `make testacc` |
-| golangci-lint v2 | `make lint` |
-| Python — ruff + ty | `make py` |
-| Vulnerabilities | `make vulncheck` · `make osv-scan` |
-| Terraform fmt | `make tffmt-check` |
-| Registry docs | `make docs-check` |
-| Docs lint | `make lint-docs` |
-| Pre-PR aggregate | `make all` |
-| Full aggregate incl. lab | `make verify` |
+| Build | `task build` |
+| Unit + race | `task test` |
+| Acceptance against the lab | `task testacc` |
+| golangci-lint v2 | `task lint` |
+| Python — ruff + ty | `task py` |
+| Vulnerabilities | `task vulncheck` · `task osv-scan` |
+| Terraform fmt | `task tf:fmt:check` |
+| Registry docs | `task docs:check` |
+| Docs lint | `task docs:lint` |
+| Pre-PR aggregate | `task all` |
+| Full aggregate incl. lab | `task verify` |
 
 ## Storage policy
 
