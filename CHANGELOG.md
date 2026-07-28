@@ -76,6 +76,10 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   complements golangci-lint rather than duplicating it, and reaches
   `powerdns/`, which the Go linter deliberately skips until migration.
 
+- `powerdns_zone` is served by the framework half of the mux. Behaviour is
+  preserved, including case-insensitive `kind` — a plan modifier now, where the
+  SDKv2 resource used `DiffSuppressFunc`.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
@@ -117,6 +121,17 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   present in the dependency graph; `govulncheck` now reports none.
 
 ### Fixed
+
+- IPv6 addresses are accepted in `powerdns_zone.masters`. The inherited
+  implementation split on `:` and rejected anything with more than one colon,
+  so every bare IPv6 master failed with
+  `more than one colon in <ip>:<port> string` (D-01, upstream #73). All four
+  forms now parse: bare IPv4, bare IPv6, `IPv4:port`, `[IPv6]:port`.
+- `masters` is validated on every path, not only on create. The inherited
+  update path performed no validation at all, so a value the provider rejected
+  at create time could still reach state by way of an edit (D-02). It is now a
+  schema validator, which also moves the failure from apply to plan.
+- `masters` on a non-`Slave` zone is rejected at plan time rather than apply.
 
 - The inherited `powerdns/` package is excluded from `golangci-lint` with the
   reasoning recorded at the exclusion. The gate against it produced 729
