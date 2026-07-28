@@ -5,7 +5,12 @@ its execution record. Task status is updated **in the same commit as the work**,
 never retrospectively in a batch — a plan updated after the fact is a report,
 not a control.
 
-**Status:** phase 3 (migration) open · sprint 2 in progress — mux server proven, first resource port next
+**Status:** **phases 3–6 superseded** by
+[`design/DESIGN-02-new-provider-spec.md`](design/DESIGN-02-new-provider-spec.md)
+on 2026-07-28. Phases 1–2 and sprints 0–2 stand as the record of what was
+done and what it taught; the remaining work moves to the new provider.
+Phase 6's upstream contributions (R-02…R-07) survive unchanged — they are
+the reason the fork still exists.
 **Last updated:** 2026-07-28
 
 ## Legend

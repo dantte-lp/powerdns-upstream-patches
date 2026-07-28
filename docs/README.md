@@ -8,6 +8,8 @@ then the standards, then the evidence.
 | [`../AGENTS.md`](../AGENTS.md) | **Start here.** Golden rules, workflow, gates. |
 | [`methodology.md`](methodology.md) | Delivery method, roles, phase gates, sprints. |
 | [`plan.md`](plan.md) | **Live delivery plan.** Task status, updated with the work. |
+| [`design/DESIGN-01-target-architecture.md`](design/DESIGN-01-target-architecture.md) | From-scratch versus rewrite, and the 2026 stack. |
+| [`design/DESIGN-02-new-provider-spec.md`](design/DESIGN-02-new-provider-spec.md) | **Specification for the new provider.** Supersedes plan phases 3–6. |
 | [`development.md`](development.md) | Dev container, the lab, the daily loop. |
 | [`testing.md`](testing.md) | Test layers and the two-backend matrix. |
 | [`release.md`](release.md) | Cutting a release; contributing upstream. |
