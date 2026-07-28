@@ -48,6 +48,16 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   Rationale in [ADR 0007](docs/adr/0007-taskfile-over-make.md); the immediate
   prompt was the `GNUmakefile` shadowing incident. `task --list` is the index.
 
+- `scripts/check-action-pins.sh` — verifies that every GitHub Action pinned by
+  commit SHA resolves upstream, and rejects floating tags. Runs as a pre-commit
+  hook, as `task lint:pins` inside `task all`, and as its own CI job. Written
+  after two fabricated SHAs reached the repository within a day; a fabricated
+  SHA is syntactically valid and fails only in a later pull request.
+- `docs/standards/verified-identifiers.md` — the general rule the hook enforces:
+  an identifier that must be exact is looked up, never recalled. Covers SHAs,
+  release tags, module versions, digests, advisory ids and `file:line`
+  citations.
+
 ### Changed
 
 - Module path is `github.com/dantte-lp/terraform-provider-powerdns`. The
@@ -70,6 +80,10 @@ path both change — see [ADR 0002](docs/adr/0002-fork-and-upstream-relationship
   effect.
 
 ### Security
+
+- All four GitHub Actions in `release.yml` are now pinned by commit SHA instead
+  of a floating tag. Found by the new pin check on its first run, in a workflow
+  nobody had edited — and the one holding the GPG signing key.
 
 - `google.golang.org/grpc` to v1.82.1 (GO-2026-6061) and `golang.org/x/text` to
   v0.39.0 (GO-2026-5970). Both were reachable from this code, not merely

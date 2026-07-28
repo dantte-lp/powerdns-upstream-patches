@@ -106,6 +106,7 @@ Goal: the module is what it claims to be, on current dependencies, without
 | S1-08 | **Added mid-sprint.** Fix two reachable CVEs found by `govulncheck` | DEV | S1-04 | `[x]` |
 | S1-09 | **Added mid-sprint.** Decide how to carry the inherited lint debt | ARC | S1-05 | `[x]` |
 | S1-10 | **Added mid-sprint.** Replace `Makefile` with a Taskfile (ADR 0007) | OPS | S1-07 | `[x]` |
+| S1-11 | **Added mid-sprint.** Enforce verified identifiers: pin checker, standard, skill | OPS | — | `[x]` |
 
 Not a release: nothing user-visible changes. The import-path change is invisible
 to a consumer because the provider is consumed as a binary.
@@ -128,6 +129,14 @@ code, not merely present in the dependency graph:
 Both are indirect dependencies, which is why the direct-dependency check came
 back clean and the vulnerability check did not. Bumped explicitly; the scan now
 reports no vulnerabilities.
+
+**S1-11** came from a defect in this project's own authoring, not in the
+inherited code: a commit SHA for a GitHub Action was written from recall rather
+than looked up, twice, on consecutive days. Both were caught by chance. The
+response is a check rather than a resolution — `scripts/check-action-pins.sh`
+runs as a pre-commit hook, inside `task all`, and as a CI job. On its first run
+it found four floating tags in `release.yml`, which no one had touched and which
+holds the signing key.
 
 **S1-10** followed directly from S1-07. Having removed one make entry point
 because two of them collide silently, keeping a `Makefile` alongside a
@@ -265,6 +274,7 @@ as authoritative; reporting it is a courtesy to the next person.
 | Upstream diverges under the contribution PRs | Cherry-picks stop applying | One defect per PR, opened early, rebased rather than batched |
 | DNSSEC private key in plain-text state | Secret exposure | C-01 settles the mechanism before implementation |
 | The `powerdns/` lint exclusion outlives the migration | 729 findings quietly permanent | S4-10 deletes the exclusion; it cannot be closed while the path is still listed |
+| An exact identifier written from recall | Fails in a later pull request, blamed on infrastructure | `scripts/check-action-pins.sh` in three gates; the general rule in `standards/verified-identifiers.md` |
 
 ## How this document is maintained
 
