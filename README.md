@@ -1,5 +1,15 @@
 # terraform-provider-powerdns
 
+> **This is a fork** of [`mmianl/terraform-provider-powerdns`](https://github.com/mmianl/terraform-provider-powerdns),
+> taken at `0dac0e7` (v2.3.0), being moved to the Terraform Plugin Framework and
+> a full standards set. Contributions intended for upstream are opened against
+> that repository, not this one — see [`docs/release.md`](docs/release.md).
+>
+> **Contributors and agents start at [`AGENTS.md`](AGENTS.md).**
+> Documentation index: [`docs/README.md`](docs/README.md).
+> Coverage analysis and the defect register live in the sibling
+> `powerdns-capability-map` repository.
+
 The Terraform PowerDNS provider allows you to manage PowerDNS zones, records, views, and networks using Terraform. It is maintained by mmianl.
 
 ## Requirements

@@ -1,0 +1,225 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & unit test
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.26-trixie
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Cache Go modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Build
+        env:
+          GOFLAGS: -buildvcs=false
+        run: go build -ldflags="-s -w -X main.version=ci-${GITHUB_SHA::8}" -o bin/terraform-provider-powerdns .
+
+      - name: Install test tooling
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Test with coverage
+        env:
+          GOFLAGS: -buildvcs=false
+        run: |
+          gotestsum --junitfile unit-report.xml --format short-verbose \
+            -- ./... -race -count=1 -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-reports
+          path: |
+            unit-report.xml
+            coverage.out
+          retention-days: 30
+
+  acceptance:
+    name: Acceptance (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    # The matrix is the point, not thoroughness theatre: views and networks are
+    # unimplemented by gpgsql, so a single-backend run cannot cover this
+    # provider. See docs/adr/0005-two-backend-test-matrix.md.
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [gpgsql, lmdb]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: pdns
+          POSTGRES_PASSWORD: pdns
+          POSTGRES_DB: pdns
+        options: >-
+          --health-cmd "pg_isready -U pdns -d pdns"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+        ports:
+          - 15432:5432
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Start lab
+        run: |
+          pip install --user podman-compose podman
+          make lab-up
+
+      - name: Verify lab matches pinned reference points
+        run: make lab-verify
+
+      - name: Acceptance tests
+        env:
+          TF_ACC: "1"
+          PDNS_API_KEY: labapikey
+          PDNS_SERVER_URL: ${{ matrix.backend == 'lmdb' && 'http://127.0.0.1:18091' || 'http://127.0.0.1:18081' }}
+          PDNS_RECURSOR_SERVER_URL: http://127.0.0.1:18082
+          PDNS_BACKEND: ${{ matrix.backend }}
+        run: go test ./... -race -count=1 -timeout 60m -v
+
+      - name: Lab diagnostics on failure
+        if: failure()
+        run: make lab-status
+
+  lint-go:
+    name: Lint (Go · golangci-lint v2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.12.2
+          args: --timeout=10m
+
+  vulncheck:
+    name: Vulnerability audit
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.26-trixie
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache Go modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
+          govulncheck ./...
+
+  terraform:
+    name: Terraform (fmt examples)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v4.0.0
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive examples
+
+  lint-docs:
+    name: Lint (markdown · yaml · spell)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+      - run: npm install -g markdownlint-cli2@latest cspell@latest
+      - run: pip install --user yamllint
+      - name: markdownlint
+        run: markdownlint-cli2 "**/*.md" "#node_modules" "#bin" "#dist" "#vendor"
+      - name: yamllint
+        run: ~/.local/bin/yamllint -c .yamllint.yaml .
+      - name: cspell
+        run: cspell --no-progress --no-summary --config .cspell.json "**/*.md" "**/*.go"
+
+  lint-python:
+    name: Lint (Python · ruff · ty)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.33"
+          enable-cache: true
+      - name: ruff check
+        run: uv run ruff check scripts/
+      - name: ruff format --check
+        run: uv run ruff format --check scripts/
+      # ty is pre-1.0; a ty-only failure is reviewed rather than trusted
+      # blindly — see docs/standards/python-tooling.md.
+      - name: ty check
+        run: uv run ty check scripts/
+
+  commitlint:
+    name: Commitlint (PR title)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+      - run: npm install -g @commitlint/cli@latest @commitlint/config-conventional@latest
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | commitlint --config .commitlintrc.yaml
