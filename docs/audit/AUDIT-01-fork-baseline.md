@@ -115,12 +115,23 @@ Absent: `dnssec`, `nsec3param`, `nsec3narrow`, `presigned`, `soa_edit`,
 resources that exist — it is the reason adding DNSSEC or TSIG touches the
 client before it touches any resource.
 
-### A-03 — Status-code handling is inconsistent, not merely absent
+### A-03 — Status-code handling: two outliers, not a pattern
 
-D-08 names `ListZones`. Reading the whole client, the pattern varies: some
-methods switch on `resp.StatusCode` with a full case list, others decode
-directly. The inconsistency is worse than uniform absence would be, because it
-makes the correct methods look like the rule.
+**Corrected 2026-07-28.** As first written this finding said the pattern
+"varies" and implied the problem was widespread. Counting before sending the
+upstream fix showed otherwise:
+
+| | methods issuing a request |
+|---|---:|
+| examine `resp.StatusCode` | 24 |
+| decode the body directly | 2 |
+
+`ListZones` and `ListRecords` are the only two. That makes the fix a two-method
+change rather than the client-wide refactor the original wording implied, and
+it is what upstream pull request #80 carries.
+
+The original wording is left here rather than deleted: an audit that only ever
+contained accurate findings is not evidence of anything.
 
 ### A-04 — `DeleteNetwork` is not a delete
 
