@@ -31,6 +31,12 @@ repos:
         exclude: '^vendor/'
         entry: podman-compose -f deployments/compose/compose.dev.yml exec -T dev gofumpt -l -w
 
+      - id: check-action-pins
+        name: verify GitHub Action pins
+        language: system
+        files: '^\.github/workflows/.*\.ya?ml$'
+        entry: scripts/check-action-pins.sh
+
       - id: no-ai-attribution
         name: no AI attribution
         language: system

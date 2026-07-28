@@ -27,6 +27,7 @@ Normative. Read the standard before changing the thing it governs.
 | [`standards/terragrunt-integration.md`](standards/terragrunt-integration.md) | How consumers orchestrate this provider. |
 | [`standards/powerdns-api-discipline.md`](standards/powerdns-api-discipline.md) | How to establish a fact about PowerDNS. |
 | [`standards/python-tooling.md`](standards/python-tooling.md) | uv, ruff, ty for the automation scripts. |
+| [`standards/verified-identifiers.md`](standards/verified-identifiers.md) | Never write a SHA, version or citation from memory. |
 
 ## Decisions
 

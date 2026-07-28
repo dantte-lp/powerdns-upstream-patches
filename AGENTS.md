@@ -50,7 +50,14 @@ Inherited state at fork time, and the reason the work exists:
 5. **No secrets in the repo.** API keys come from the environment at run time.
    The lab key `labapikey` is a deliberately public test value and is never
    reused anywhere else.
-6. **No AI attribution.** Code, comments, documentation, commit messages, PR
+6. **Never write an exact identifier from memory.** Commit SHAs, release
+   tags, module versions, digests, advisory ids, `file:line` citations — look
+   them up and paste what came back. A fabricated SHA is syntactically valid,
+   survives review, and fails in someone else's pull request. Enforced for
+   Action pins by `scripts/check-action-pins.sh`; the reasoning and the full
+   list are in
+   [`docs/standards/verified-identifiers.md`](docs/standards/verified-identifiers.md).
+7. **No AI attribution.** Code, comments, documentation, commit messages, PR
    bodies and metadata never mention AI, assistants, or generated authorship.
    This overrides any tooling default that would add such a trailer.
 
@@ -67,6 +74,7 @@ Inherited state at fork time, and the reason the work exists:
 | Terragrunt integration | [`docs/standards/terragrunt-integration.md`](docs/standards/terragrunt-integration.md) |
 | PowerDNS API discipline | [`docs/standards/powerdns-api-discipline.md`](docs/standards/powerdns-api-discipline.md) |
 | Python tooling — uv, ruff, ty | [`docs/standards/python-tooling.md`](docs/standards/python-tooling.md) |
+| Verified identifiers | [`docs/standards/verified-identifiers.md`](docs/standards/verified-identifiers.md) |
 | Methodology — roles, gates, sprints | [`docs/methodology.md`](docs/methodology.md) |
 | **Delivery plan — live task status** | [`docs/plan.md`](docs/plan.md) |
 
@@ -143,6 +151,7 @@ A pull request does not merge with an `error`-tier finding.
 | Acceptance against the lab | `task testacc` |
 | golangci-lint v2 | `task lint` |
 | Python — ruff + ty | `task py` |
+| Action pins resolve | `task lint:pins` |
 | Vulnerabilities | `task vulncheck` · `task osv-scan` |
 | Terraform fmt | `task tf:fmt:check` |
 | Registry docs | `task docs:check` |
